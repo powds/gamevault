@@ -1,9 +1,12 @@
 package com.gamevault.presentation.vault
 
+import android.content.Intent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
@@ -11,17 +14,27 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gamevault.presentation.common.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
-    onBack: () -> Unit
+    viewModel: VaultViewModel,
+    onNavigateBack: () -> Unit
 ) {
+    val context = LocalContext.current
+    val storageInfo by viewModel.storageInfo.collectAsStateWithLifecycle()
+
     var biometricEnabled by remember { mutableStateOf(false) }
-    var autoLockTime by remember { mutableStateOf("Immediately") }
+    var autoLockEnabled by remember { mutableStateOf(true) }
+    var autoLockTimeout by remember { mutableStateOf("Immediately") }
+    var intruderCaptureEnabled by remember { mutableStateOf(true) }
     var showDeleteDialog by remember { mutableStateOf(false) }
+    var showTimeoutDialog by remember { mutableStateOf(false) }
+    var showClearSecurityDialog by remember { mutableStateOf(false) }
 
     Box(
         modifier = Modifier
@@ -34,7 +47,7 @@ fun SettingsScreen(
             TopAppBar(
                 title = { Text("Settings", color = VaultText) },
                 navigationIcon = {
-                    IconButton(onClick = onBack) {
+                    IconButton(onClick = onNavigateBack) {
                         Icon(
                             Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Back",
@@ -48,81 +61,98 @@ fun SettingsScreen(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
                     .padding(16.dp)
             ) {
                 // Security Section
-                Text(
-                    text = "Security",
-                    color = VaultPrimary,
-                    style = MaterialTheme.typography.titleMedium
+                SectionTitle("Security")
+
+                SettingsSwitchItem(
+                    icon = Icons.Default.Fingerprint,
+                    title = "Biometric Unlock",
+                    subtitle = "Use fingerprint to unlock vault",
+                    checked = biometricEnabled,
+                    onCheckedChange = { enabled ->
+                        // Biometric toggle - in production would use AndroidX Biometric
+                        biometricEnabled = enabled
+                    }
                 )
 
-                Spacer(modifier = Modifier.height(8.dp))
+                SettingsSwitchItem(
+                    icon = Icons.Default.Lock,
+                    title = "Auto Lock",
+                    subtitle = "Lock vault when leaving app",
+                    checked = autoLockEnabled,
+                    onCheckedChange = { autoLockEnabled = it }
+                )
+
+                SettingsItem(
+                    icon = Icons.Default.Timer,
+                    title = "Auto Lock Timeout",
+                    subtitle = autoLockTimeout,
+                    onClick = { showTimeoutDialog = true }
+                )
+
+                SettingsSwitchItem(
+                    icon = Icons.Default.CameraAlt,
+                    title = "Intruder Capture",
+                    subtitle = "Capture photo on wrong PIN/pattern",
+                    checked = intruderCaptureEnabled,
+                    onCheckedChange = { intruderCaptureEnabled = it }
+                )
 
                 SettingsItem(
                     icon = Icons.Default.Pattern,
                     title = "Change Pattern",
                     subtitle = "Set a new unlock pattern",
-                    onClick = { /* TODO */ }
+                    onClick = { /* Navigate to pattern setup */ }
                 )
 
                 SettingsItem(
                     icon = Icons.Default.Pin,
                     title = "Change PIN",
                     subtitle = "Update your PIN code",
-                    onClick = { /* TODO */ }
-                )
-
-                SettingsSwitchItem(
-                    icon = Icons.Default.Fingerprint,
-                    title = "Biometric Unlock",
-                    subtitle = "Use fingerprint to unlock",
-                    checked = biometricEnabled,
-                    onCheckedChange = { biometricEnabled = it }
+                    onClick = { /* Navigate to PIN setup */ }
                 )
 
                 SettingsItem(
-                    icon = Icons.Default.Lock,
-                    title = "Auto Lock",
-                    subtitle = autoLockTime,
-                    onClick = { /* TODO: Show time picker */ }
+                    icon = Icons.Default.Warning,
+                    title = "Clear Security",
+                    subtitle = "Remove pattern and PIN",
+                    onClick = { showClearSecurityDialog = true },
+                    isDanger = true
                 )
 
                 Spacer(modifier = Modifier.height(24.dp))
 
                 // Storage Section
-                Text(
-                    text = "Storage",
-                    color = VaultPrimary,
-                    style = MaterialTheme.typography.titleMedium
-                )
+                SectionTitle("Storage")
 
-                Spacer(modifier = Modifier.height(8.dp))
+                SettingsItem(
+                    icon = Icons.Default.Storage,
+                    title = "Vault Storage",
+                    subtitle = storageInfo,
+                    onClick = { }
+                )
 
                 SettingsItem(
                     icon = Icons.Default.CloudUpload,
                     title = "Cloud Backup",
                     subtitle = "Backup to Google Drive",
-                    onClick = { /* TODO */ }
+                    onClick = { /* TODO: Implement cloud backup */ }
                 )
 
                 SettingsItem(
-                    icon = Icons.Default.Storage,
-                    title = "Vault Storage",
-                    subtitle = "2.5 GB used",
-                    onClick = { /* TODO */ }
+                    icon = Icons.Default.CloudDownload,
+                    title = "Restore Backup",
+                    subtitle = "Restore from Google Drive",
+                    onClick = { /* TODO: Implement restore */ }
                 )
 
                 Spacer(modifier = Modifier.height(24.dp))
 
                 // Appearance Section
-                Text(
-                    text = "Appearance",
-                    color = VaultPrimary,
-                    style = MaterialTheme.typography.titleMedium
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
+                SectionTitle("Appearance")
 
                 SettingsSwitchItem(
                     icon = Icons.Default.DarkMode,
@@ -135,13 +165,7 @@ fun SettingsScreen(
                 Spacer(modifier = Modifier.height(24.dp))
 
                 // Danger Zone
-                Text(
-                    text = "Danger Zone",
-                    color = VaultPrimary,
-                    style = MaterialTheme.typography.titleMedium
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
+                SectionTitle("Danger Zone")
 
                 SettingsItem(
                     icon = Icons.Default.Delete,
@@ -160,6 +184,8 @@ fun SettingsScreen(
                     style = MaterialTheme.typography.bodySmall,
                     modifier = Modifier.align(Alignment.CenterHorizontally)
                 )
+
+                Spacer(modifier = Modifier.height(16.dp))
             }
         }
 
@@ -173,7 +199,10 @@ fun SettingsScreen(
                 },
                 confirmButton = {
                     TextButton(
-                        onClick = { showDeleteDialog = false },
+                        onClick = {
+                            showDeleteDialog = false
+                            // TODO: Delete all data
+                        },
                         colors = ButtonDefaults.textButtonColors(contentColor = VaultPrimary)
                     ) {
                         Text("Delete Everything")
@@ -189,7 +218,85 @@ fun SettingsScreen(
                 textContentColor = VaultText.copy(alpha = 0.7f)
             )
         }
+
+        // Clear security dialog
+        if (showClearSecurityDialog) {
+            AlertDialog(
+                onDismissRequest = { showClearSecurityDialog = false },
+                title = { Text("Clear Security?") },
+                text = {
+                    Text("This will remove your pattern and PIN. You will need to set them up again.")
+                },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            showClearSecurityDialog = false
+                            // TODO: Clear security
+                        },
+                        colors = ButtonDefaults.textButtonColors(contentColor = VaultPrimary)
+                    ) {
+                        Text("Clear")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showClearSecurityDialog = false }) {
+                        Text("Cancel")
+                    }
+                },
+                containerColor = VaultSurface,
+                titleContentColor = VaultText,
+                textContentColor = VaultText.copy(alpha = 0.7f)
+            )
+        }
+
+        // Auto lock timeout dialog
+        if (showTimeoutDialog) {
+            AlertDialog(
+                onDismissRequest = { showTimeoutDialog = false },
+                title = { Text("Auto Lock Timeout") },
+                text = {
+                    Column {
+                        listOf("Immediately", "30 seconds", "1 minute", "5 minutes", "15 minutes").forEach { option ->
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable {
+                                        autoLockTimeout = option
+                                        showTimeoutDialog = false
+                                    }
+                                    .padding(vertical = 12.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                RadioButton(
+                                    selected = autoLockTimeout == option,
+                                    onClick = {
+                                        autoLockTimeout = option
+                                        showTimeoutDialog = false
+                                    },
+                                    colors = RadioButtonDefaults.colors(selectedColor = VaultPrimary)
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(option, color = VaultText)
+                            }
+                        }
+                    }
+                },
+                confirmButton = { },
+                containerColor = VaultSurface,
+                titleContentColor = VaultText
+            )
+        }
     }
+}
+
+@Composable
+private fun SectionTitle(text: String) {
+    Text(
+        text = text,
+        color = VaultPrimary,
+        style = MaterialTheme.typography.titleMedium,
+        modifier = Modifier.padding(bottom = 8.dp, top = 8.dp)
+    )
 }
 
 @Composable
@@ -260,10 +367,7 @@ private fun SettingsSwitchItem(
         Spacer(modifier = Modifier.width(16.dp))
 
         Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = title,
-                color = VaultText
-            )
+            Text(text = title, color = VaultText)
             Text(
                 text = subtitle,
                 color = VaultText.copy(alpha = 0.5f),

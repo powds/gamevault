@@ -1,6 +1,7 @@
 package com.gamevault.presentation.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -8,6 +9,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.gamevault.presentation.game.GameScreen
 import com.gamevault.presentation.vault.VaultScreen
+import com.gamevault.presentation.vault.VaultViewModel
 import com.gamevault.presentation.vault.PatternSetupScreen
 import com.gamevault.presentation.vault.PinSetupScreen
 import com.gamevault.presentation.vault.FileViewerScreen
@@ -90,7 +92,7 @@ fun GameVaultNavHost() {
 
         composable(Screen.AppList.route) {
             AppListScreen(
-                onBack = {
+                onNavigateBack = {
                     navController.popBackStack()
                 }
             )
@@ -98,7 +100,8 @@ fun GameVaultNavHost() {
 
         composable(Screen.Settings.route) {
             SettingsScreen(
-                onBack = {
+                viewModel = hiltViewModel(),
+                onNavigateBack = {
                     navController.popBackStack()
                 }
             )

@@ -1,6 +1,7 @@
 package com.gamevault.presentation.vault;
 
 import android.content.Context;
+import com.gamevault.data.repository.VaultRepository;
 import dagger.internal.DaggerGenerated;
 import dagger.internal.Factory;
 import dagger.internal.QualifierMetadata;
@@ -24,20 +25,25 @@ import javax.inject.Provider;
 public final class VaultViewModel_Factory implements Factory<VaultViewModel> {
   private final Provider<Context> contextProvider;
 
-  public VaultViewModel_Factory(Provider<Context> contextProvider) {
+  private final Provider<VaultRepository> repositoryProvider;
+
+  public VaultViewModel_Factory(Provider<Context> contextProvider,
+      Provider<VaultRepository> repositoryProvider) {
     this.contextProvider = contextProvider;
+    this.repositoryProvider = repositoryProvider;
   }
 
   @Override
   public VaultViewModel get() {
-    return newInstance(contextProvider.get());
+    return newInstance(contextProvider.get(), repositoryProvider.get());
   }
 
-  public static VaultViewModel_Factory create(Provider<Context> contextProvider) {
-    return new VaultViewModel_Factory(contextProvider);
+  public static VaultViewModel_Factory create(Provider<Context> contextProvider,
+      Provider<VaultRepository> repositoryProvider) {
+    return new VaultViewModel_Factory(contextProvider, repositoryProvider);
   }
 
-  public static VaultViewModel newInstance(Context context) {
-    return new VaultViewModel(context);
+  public static VaultViewModel newInstance(Context context, VaultRepository repository) {
+    return new VaultViewModel(context, repository);
   }
 }

@@ -8,13 +8,11 @@ import android.os.Environment
 import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -25,7 +23,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -34,6 +33,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gamevault.domain.model.VaultItem
 import com.gamevault.domain.model.VaultItemType
 import com.gamevault.presentation.common.theme.*
+import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -48,15 +48,42 @@ fun VaultScreen(
 ) {
     val context = LocalContext.current
     val vaultItems by viewModel.vaultItems.collectAsStateWithLifecycle()
+    val filteredItems by viewModel.filteredItems.collectAsStateWithLifecycle()
     val hiddenApps by viewModel.hiddenApps.collectAsStateWithLifecycle()
     val selectedTab by viewModel.selectedTab.collectAsStateWithLifecycle()
+    val searchQuery by viewModel.searchQuery.collectAsStateWithLifecycle()
+    val storageInfo by viewModel.storageInfo.collectAsStateWithLifecycle()
 
     var showPermissionDialog by remember { mutableStateOf(false) }
+    var showDeleteDialog by remember { mutableStateOf<VaultItem?>(null) }
 
     val permissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
     ) { permissions ->
         // Handle permissions result
+    }
+
+    val filePickerLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.OpenDocument()
+    ) { uri ->
+        uri?.let {
+            val contentResolver = context.contentResolver
+            val fileName = it.lastPathSegment ?: "file"
+            val type = when {
+                fileName.endsWith(".jpg") || fileName.endsWith(".png") || fileName.endsWith(".gif") -> VaultItemType.PHOTO
+                fileName.endsWith(".mp4") || fileName.endsWith(".mkv") || fileName.endsWith(".webm") -> VaultItemType.VIDEO
+                else -> VaultItemType.DOCUMENT
+            }
+            // Get file size
+            var size = 0L
+            contentResolver.query(it, null, null, null, null)?.use { cursor ->
+                val sizeIndex = cursor.getColumnIndex(android.provider.OpenableColumns.SIZE)
+                if (cursor.moveToFirst() && sizeIndex >= 0) {
+                    size = cursor.getLong(sizeIndex)
+                }
+            }
+            viewModel.addFileToVault(it.toString(), fileName, type, size)
+        }
     }
 
     LaunchedEffect(Unit) {
@@ -85,10 +112,14 @@ fun VaultScreen(
             // Top Bar
             TopAppBar(
                 title = {
-                    Text(
-                        "Vault",
-                        color = VaultText
-                    )
+                    Column {
+                        Text("Vault", color = VaultText)
+                        Text(
+                            text = storageInfo,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = VaultText.copy(alpha = 0.5f)
+                        )
+                    }
                 },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
@@ -137,15 +168,18 @@ fun VaultScreen(
             // Content
             when (selectedTab) {
                 0 -> FilesTab(
-                    items = vaultItems,
+                    items = filteredItems,
+                    searchQuery = searchQuery,
+                    onSearchChange = { viewModel.search(it) },
+                    onClearSearch = { viewModel.clearSearch() },
                     onOpenFile = onOpenFile,
-                    onAddFile = { /* TODO: Implement file picker */ }
+                    onAddFile = { filePickerLauncher.launch(arrayOf("*/*")) },
+                    onDeleteFile = { showDeleteDialog = it }
                 )
                 1 -> AppsTab(
                     hiddenApps = hiddenApps,
-                    onHideApp = { viewModel.hideApp(it) },
-                    onUnhideApp = { viewModel.unhideApp(it.packageName) },
-                    onLaunchApp = { viewModel.launchApp(it.packageName) },
+                    onUnhideApp = { viewModel.unhideApp(it) },
+                    onLaunchApp = { viewModel.launchApp(it) },
                     onBrowseApps = onOpenAppList
                 )
             }
@@ -155,8 +189,8 @@ fun VaultScreen(
         if (showPermissionDialog) {
             AlertDialog(
                 onDismissRequest = { showPermissionDialog = false },
-                title = { Text("Storage Permission Required") },
-                text = {
+                title = { Text("Storage Permission Required") }
+                , text = {
                     Text("GameVault needs storage permission to hide your files securely.")
                 },
                 confirmButton = {
@@ -176,7 +210,35 @@ fun VaultScreen(
                     TextButton(onClick = { showPermissionDialog = false }) {
                         Text("Cancel")
                     }
-                }
+                },
+                containerColor = VaultSurface,
+                titleContentColor = VaultText,
+                textContentColor = VaultText.copy(alpha = 0.7f)
+            )
+        }
+
+        // Delete Confirmation Dialog
+        showDeleteDialog?.let { item ->
+            AlertDialog(
+                onDismissRequest = { showDeleteDialog = null },
+                title = { Text("Delete File?") },
+                text = { Text("Are you sure you want to remove \"${item.name}\" from your vault?") },
+                confirmButton = {
+                    TextButton(onClick = {
+                        viewModel.deleteItem(item)
+                        showDeleteDialog = null
+                    }) {
+                        Text("Delete", color = VaultPrimary)
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showDeleteDialog = null }) {
+                        Text("Cancel")
+                    }
+                },
+                containerColor = VaultSurface,
+                titleContentColor = VaultText,
+                textContentColor = VaultText.copy(alpha = 0.7f)
             )
         }
     }
@@ -185,18 +247,53 @@ fun VaultScreen(
 @Composable
 private fun FilesTab(
     items: List<VaultItem>,
+    searchQuery: String,
+    onSearchChange: (String) -> Unit,
+    onClearSearch: () -> Unit,
     onOpenFile: (Long) -> Unit,
-    onAddFile: () -> Unit
+    onAddFile: () -> Unit,
+    onDeleteFile: (VaultItem) -> Unit
 ) {
     Column(
         modifier = Modifier.fillMaxSize()
     ) {
+        // Search Bar
+        OutlinedTextField(
+            value = searchQuery,
+            onValueChange = onSearchChange,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 8.dp),
+            placeholder = { Text("Search files...", color = VaultText.copy(alpha = 0.5f)) },
+            leadingIcon = {
+                Icon(Icons.Default.Search, contentDescription = null, tint = VaultText.copy(alpha = 0.5f))
+            },
+            trailingIcon = {
+                if (searchQuery.isNotEmpty()) {
+                    IconButton(onClick = onClearSearch) {
+                        Icon(Icons.Default.Clear, contentDescription = "Clear", tint = VaultText)
+                    }
+                }
+            },
+            singleLine = true,
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedTextColor = VaultText,
+                unfocusedTextColor = VaultText,
+                focusedBorderColor = VaultPrimary,
+                unfocusedBorderColor = VaultText.copy(alpha = 0.3f),
+                cursorColor = VaultPrimary,
+                focusedContainerColor = VaultSurface,
+                unfocusedContainerColor = VaultSurface
+            ),
+            shape = RoundedCornerShape(12.dp)
+        )
+
         // Add button
         Button(
             onClick = onAddFile,
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
+                .padding(horizontal = 16.dp, vertical = 8.dp),
             colors = ButtonDefaults.buttonColors(containerColor = VaultPrimary)
         ) {
             Icon(Icons.Default.Add, contentDescription = null)
@@ -220,11 +317,11 @@ private fun FilesTab(
                     )
                     Spacer(modifier = Modifier.height(16.dp))
                     Text(
-                        "No hidden files yet",
+                        text = if (searchQuery.isNotEmpty()) "No files found" else "No hidden files yet",
                         color = VaultText.copy(alpha = 0.5f)
                     )
                     Text(
-                        "Tap above to add files",
+                        text = if (searchQuery.isNotEmpty()) "Try a different search" else "Tap above to add files",
                         color = VaultText.copy(alpha = 0.3f),
                         style = MaterialTheme.typography.bodySmall
                     )
@@ -237,7 +334,11 @@ private fun FilesTab(
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 items(items) { item ->
-                    FileItem(item = item, onClick = { onOpenFile(item.id) })
+                    FileItem(
+                        item = item,
+                        onClick = { onOpenFile(item.id) },
+                        onDelete = { onDeleteFile(item) }
+                    )
                 }
             }
         }
@@ -247,14 +348,17 @@ private fun FilesTab(
 @Composable
 private fun FileItem(
     item: VaultItem,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    onDelete: () -> Unit
 ) {
+    var showMenu by remember { mutableStateOf(false) }
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick),
         colors = CardDefaults.cardColors(containerColor = VaultSurface),
-        shape = RoundedCornerShape(8.dp)
+        shape = RoundedCornerShape(12.dp)
     ) {
         Row(
             modifier = Modifier
@@ -262,7 +366,7 @@ private fun FileItem(
                 .padding(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Icon
+            // Icon based on type
             Box(
                 modifier = Modifier
                     .size(48.dp)
@@ -285,29 +389,51 @@ private fun FileItem(
 
             Spacer(modifier = Modifier.width(12.dp))
 
-            // Info
-            Column(
-                modifier = Modifier.weight(1f)
-            ) {
+            // File info
+            Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = item.name,
                     color = VaultText,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
-                Text(
-                    text = formatFileSize(item.size),
-                    color = VaultText.copy(alpha = 0.5f),
-                    style = MaterialTheme.typography.bodySmall
-                )
+                Row {
+                    Text(
+                        text = formatFileSize(item.size),
+                        color = VaultText.copy(alpha = 0.5f),
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                    Text(
+                        text = " • ",
+                        color = VaultText.copy(alpha = 0.3f)
+                    )
+                    Text(
+                        text = formatDate(item.dateAdded),
+                        color = VaultText.copy(alpha = 0.5f),
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
             }
 
-            // Type badge
-            Text(
-                text = item.type.name,
-                color = VaultPrimary,
-                style = MaterialTheme.typography.labelSmall
-            )
+            // Menu
+            Box {
+                IconButton(onClick = { showMenu = true }) {
+                    Icon(Icons.Default.MoreVert, contentDescription = "More", tint = VaultText)
+                }
+                DropdownMenu(
+                    expanded = showMenu,
+                    onDismissRequest = { showMenu = false }
+                ) {
+                    DropdownMenuItem(
+                        text = { Text("Delete", color = VaultPrimary) },
+                        onClick = {
+                            showMenu = false
+                            onDelete()
+                        },
+                        leadingIcon = { Icon(Icons.Default.Delete, contentDescription = null, tint = VaultPrimary) }
+                    )
+                }
+            }
         }
     }
 }
@@ -315,9 +441,8 @@ private fun FileItem(
 @Composable
 private fun AppsTab(
     hiddenApps: List<com.gamevault.domain.model.HiddenApp>,
-    onHideApp: (android.content.pm.ApplicationInfo) -> Unit,
-    onUnhideApp: (com.gamevault.domain.model.HiddenApp) -> Unit,
-    onLaunchApp: (com.gamevault.domain.model.HiddenApp) -> Unit,
+    onUnhideApp: (String) -> Unit,
+    onLaunchApp: (String) -> Unit,
     onBrowseApps: () -> Unit
 ) {
     Column(
@@ -342,13 +467,11 @@ private fun AppsTab(
                         "No hidden apps",
                         color = VaultText.copy(alpha = 0.5f)
                     )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Button(
-                        onClick = onBrowseApps,
-                        colors = ButtonDefaults.buttonColors(containerColor = VaultPrimary)
-                    ) {
-                        Text("Browse Apps")
-                    }
+                    Text(
+                        "Tap below to browse and hide apps",
+                        color = VaultText.copy(alpha = 0.3f),
+                        style = MaterialTheme.typography.bodySmall
+                    )
                 }
             }
         } else {
@@ -360,11 +483,26 @@ private fun AppsTab(
                 items(hiddenApps) { app ->
                     HiddenAppItem(
                         app = app,
-                        onLaunch = { onLaunchApp(app) },
-                        onUnhide = { onUnhideApp(app) }
+                        onLaunch = { onLaunchApp(app.packageName) },
+                        onUnhide = { onUnhideApp(app.packageName) }
                     )
                 }
             }
+        }
+
+        Spacer(modifier = Modifier.weight(1f))
+
+        // Browse Apps Button
+        Button(
+            onClick = onBrowseApps,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = VaultPrimary)
+        ) {
+            Icon(Icons.Default.Apps, contentDescription = null)
+            Spacer(modifier = Modifier.width(8.dp))
+            Text("Browse Apps")
         }
     }
 }
@@ -375,10 +513,14 @@ private fun HiddenAppItem(
     onLaunch: () -> Unit,
     onUnhide: () -> Unit
 ) {
+    var showMenu by remember { mutableStateOf(false) }
+
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onLaunch),
         colors = CardDefaults.cardColors(containerColor = VaultSurface),
-        shape = RoundedCornerShape(8.dp)
+        shape = RoundedCornerShape(12.dp)
     ) {
         Row(
             modifier = Modifier
@@ -386,45 +528,80 @@ private fun HiddenAppItem(
                 .padding(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(
-                Icons.Default.Android,
-                contentDescription = null,
-                tint = VaultPrimary,
-                modifier = Modifier.size(40.dp)
-            )
-
-            Spacer(modifier = Modifier.width(12.dp))
-
-            Text(
-                text = app.appName,
-                color = VaultText,
-                modifier = Modifier.weight(1f)
-            )
-
-            IconButton(onClick = onLaunch) {
+            // App icon placeholder
+            Box(
+                modifier = Modifier
+                    .size(48.dp)
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(VaultSecondary),
+                contentAlignment = Alignment.Center
+            ) {
                 Icon(
-                    Icons.Default.Launch,
-                    contentDescription = "Launch",
-                    tint = VaultPrimary
+                    Icons.Default.Android,
+                    contentDescription = null,
+                    tint = VaultPrimary,
+                    modifier = Modifier.size(24.dp)
                 )
             }
 
-            IconButton(onClick = onUnhide) {
-                Icon(
-                    Icons.Default.Visibility,
-                    contentDescription = "Unhide",
-                    tint = VaultText.copy(alpha = 0.5f)
+            Spacer(modifier = Modifier.width(12.dp))
+
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = app.appName,
+                    color = VaultText,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
+                Text(
+                    text = app.packageName,
+                    color = VaultText.copy(alpha = 0.5f),
+                    style = MaterialTheme.typography.bodySmall,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+
+            Box {
+                IconButton(onClick = { showMenu = true }) {
+                    Icon(Icons.Default.MoreVert, contentDescription = "More", tint = VaultText)
+                }
+                DropdownMenu(
+                    expanded = showMenu,
+                    onDismissRequest = { showMenu = false }
+                ) {
+                    DropdownMenuItem(
+                        text = { Text("Launch") },
+                        onClick = {
+                            showMenu = false
+                            onLaunch()
+                        },
+                        leadingIcon = { Icon(Icons.Default.PlayArrow, contentDescription = null) }
+                    )
+                    DropdownMenuItem(
+                        text = { Text("Unhide", color = VaultPrimary) },
+                        onClick = {
+                            showMenu = false
+                            onUnhide()
+                        },
+                        leadingIcon = { Icon(Icons.Default.Visibility, contentDescription = null, tint = VaultPrimary) }
+                    )
+                }
             }
         }
     }
 }
 
-private fun formatFileSize(size: Long): String {
+private fun formatFileSize(bytes: Long): String {
     return when {
-        size < 1024 -> "$size B"
-        size < 1024 * 1024 -> "${size / 1024} KB"
-        size < 1024 * 1024 * 1024 -> "${size / (1024 * 1024)} MB"
-        else -> "${size / (1024 * 1024 * 1024)} GB"
+        bytes < 1024 -> "$bytes B"
+        bytes < 1024 * 1024 -> String.format("%.1f KB", bytes / 1024.0)
+        bytes < 1024 * 1024 * 1024 -> String.format("%.1f MB", bytes / (1024.0 * 1024.0))
+        else -> String.format("%.1f GB", bytes / (1024.0 * 1024.0 * 1024.0))
     }
+}
+
+private fun formatDate(timestamp: Long): String {
+    val sdf = SimpleDateFormat("MMM dd, yyyy", Locale.getDefault())
+    return sdf.format(Date(timestamp))
 }

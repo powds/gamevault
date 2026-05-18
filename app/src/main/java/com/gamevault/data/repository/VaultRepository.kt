@@ -2,6 +2,12 @@ package com.gamevault.data.repository
 
 import android.content.Context
 import android.content.SharedPreferences
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.media.ThumbnailUtils
+import android.os.Build
+import android.provider.MediaStore
+import android.util.Size
 import com.gamevault.data.local.GameStateDao
 import com.gamevault.data.local.GameStateEntity
 import com.gamevault.data.local.HiddenAppDao
@@ -12,9 +18,13 @@ import com.gamevault.domain.model.HiddenApp
 import com.gamevault.domain.model.VaultItem
 import com.gamevault.domain.model.VaultItemType
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.withContext
 import org.json.JSONArray
+import java.io.File
+import java.io.FileOutputStream
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -26,6 +36,13 @@ class VaultRepository @Inject constructor(
     private val gameStateDao: GameStateDao
 ) {
     private val prefs: SharedPreferences = context.getSharedPreferences("gamevault_prefs", Context.MODE_PRIVATE)
+    private val vaultDir: File = File(context.filesDir, "vault_files")
+    
+    init {
+        if (!vaultDir.exists()) {
+            vaultDir.mkdirs()
+        }
+    }
 
     // ==================== Pattern/PIN ====================
     
@@ -73,7 +90,7 @@ class VaultRepository @Inject constructor(
     fun setBiometricEnabled(enabled: Boolean) {
         prefs.edit().putBoolean("biometric_enabled", enabled).apply()
     }
-    
+
     fun clearSecurity() {
         prefs.edit()
             .remove("pattern")
@@ -83,6 +100,34 @@ class VaultRepository @Inject constructor(
             .remove("decoy_pin")
             .remove("decoy_pin_set")
             .apply()
+    }
+
+    // ==================== Auto Lock ====================
+    
+    fun getAutoLockTimeout(): Int = prefs.getInt("auto_lock_timeout", 60) // seconds
+    
+    fun setAutoLockTimeout(seconds: Int) {
+        prefs.edit().putInt("auto_lock_timeout", seconds).apply()
+    }
+    
+    fun getLastActiveTime(): Long = prefs.getLong("last_active_time", System.currentTimeMillis())
+    
+    fun updateLastActiveTime() {
+        prefs.edit().putLong("last_active_time", System.currentTimeMillis()).apply()
+    }
+    
+    fun isAutoLockEnabled(): Boolean = prefs.getBoolean("auto_lock_enabled", true)
+    
+    fun setAutoLockEnabled(enabled: Boolean) {
+        prefs.edit().putBoolean("auto_lock_enabled", enabled).apply()
+    }
+    
+    fun shouldAutoLock(): Boolean {
+        if (!isAutoLockEnabled()) return false
+        val timeout = getAutoLockTimeout()
+        val lastActive = getLastActiveTime()
+        val elapsed = (System.currentTimeMillis() - lastActive) / 1000
+        return elapsed > timeout
     }
 
     // ==================== Intruder Capture ====================
@@ -147,8 +192,10 @@ class VaultRepository @Inject constructor(
         }
     }
 
-    suspend fun addVaultItem(item: VaultItem) {
-        vaultItemDao.insertItem(item.toEntity())
+    suspend fun addVaultItem(item: VaultItem): Long {
+        val entity = item.toEntity()
+        vaultItemDao.insertItem(entity)
+        return entity.id
     }
 
     suspend fun deleteVaultItem(id: Long) {
@@ -160,12 +207,104 @@ class VaultRepository @Inject constructor(
     }
 
     suspend fun deleteAllVaultItems() {
-        // Get all items and delete them one by one
-        val items = vaultItemDao.getAllItems()
-        items.collect { itemList ->
-            itemList.forEach { item ->
-                vaultItemDao.deleteItem(item)
+        // Delete all files from vault directory
+        vaultDir.listFiles()?.forEach { it.delete() }
+        // Clear database
+        vaultItemDao.deleteAll()
+    }
+
+    // ==================== Search ====================
+
+    fun searchVaultItems(query: String, items: List<VaultItem>): List<VaultItem> {
+        if (query.isBlank()) return items
+        val lowerQuery = query.lowercase()
+        return items.filter { item ->
+            item.name.lowercase().contains(lowerQuery) ||
+            item.type.name.lowercase().contains(lowerQuery)
+        }
+    }
+
+    // ==================== Thumbnails ====================
+
+    suspend fun generateThumbnail(item: VaultItem): String? = withContext(Dispatchers.IO) {
+        try {
+            val thumbnailDir = File(context.filesDir, "thumbnails")
+            if (!thumbnailDir.exists()) thumbnailDir.mkdirs()
+            
+            val thumbnailFile = File(thumbnailDir, "thumb_${item.id}.jpg")
+            if (thumbnailFile.exists()) return@withContext thumbnailFile.absolutePath
+            
+            when (item.type) {
+                VaultItemType.PHOTO -> generatePhotoThumbnail(item.path, thumbnailFile)
+                VaultItemType.VIDEO -> generateVideoThumbnail(item.path, thumbnailFile)
+                else -> null
             }
+        } catch (e: Exception) {
+            null
+        }
+    }
+
+    private fun generatePhotoThumbnail(sourcePath: String, destFile: File): String? {
+        return try {
+            val options = BitmapFactory.Options().apply {
+                inSampleSize = 4 // Scale down to 1/4
+            }
+            val bitmap = BitmapFactory.decodeFile(sourcePath, options)
+            if (bitmap != null) {
+                Bitmap.createScaledBitmap(bitmap, 200, 200, true).let { scaled ->
+                    FileOutputStream(destFile).use { out ->
+                        scaled.compress(Bitmap.CompressFormat.JPEG, 80, out)
+                    }
+                    scaled.recycle()
+                    bitmap.recycle()
+                    destFile.absolutePath
+                }
+            } else null
+        } catch (e: Exception) {
+            null
+        }
+    }
+
+    private fun generateVideoThumbnail(sourcePath: String, destFile: File): String? {
+        return try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                val bitmap = context.contentResolver.loadThumbnail(
+                    android.net.Uri.fromFile(File(sourcePath)),
+                    Size(200, 200),
+                    null
+                )
+                FileOutputStream(destFile).use { out ->
+                    bitmap.compress(Bitmap.CompressFormat.JPEG, 80, out)
+                }
+                bitmap.recycle()
+                destFile.absolutePath
+            } else {
+                val bitmap = ThumbnailUtils.createVideoThumbnail(sourcePath, MediaStore.Images.Thumbnails.MINI_KIND)
+                if (bitmap != null) {
+                    FileOutputStream(destFile).use { out ->
+                        bitmap.compress(Bitmap.CompressFormat.JPEG, 80, out)
+                    }
+                    bitmap.recycle()
+                    destFile.absolutePath
+                } else null
+            }
+        } catch (e: Exception) {
+            null
+        }
+    }
+
+    // ==================== Vault Storage Info ====================
+
+    fun getVaultStorageUsed(): Long {
+        return vaultDir.walkTopDown().filter { it.isFile }.sumOf { it.length() }
+    }
+
+    fun formatFileSize(bytes: Long): String {
+        return when {
+            bytes < 1024 -> "$bytes B"
+            bytes < 1024 * 1024 -> String.format("%.1f KB", bytes / 1024.0)
+            bytes < 1024 * 1024 * 1024 -> String.format("%.1f MB", bytes / (1024.0 * 1024.0))
+            else -> String.format("%.1f GB", bytes / (1024.0 * 1024.0 * 1024.0))
         }
     }
 

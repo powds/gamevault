@@ -459,7 +459,7 @@ public final class DaggerGameVaultApp_HiltComponents_SingletonC {
           return (T) new GameViewModel(singletonCImpl.provideGameEngineProvider.get(), singletonCImpl.vaultRepositoryProvider.get());
 
           case 1: // com.gamevault.presentation.vault.VaultViewModel 
-          return (T) new VaultViewModel(ApplicationContextModule_ProvideContextFactory.provideContext(singletonCImpl.applicationContextModule));
+          return (T) new VaultViewModel(ApplicationContextModule_ProvideContextFactory.provideContext(singletonCImpl.applicationContextModule), singletonCImpl.vaultRepositoryProvider.get());
 
           default: throw new AssertionError(id);
         }

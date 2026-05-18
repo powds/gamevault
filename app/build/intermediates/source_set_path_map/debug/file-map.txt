@@ -62,9 +62,9 @@ com.gamevault.app-jetified-lifecycle-runtime-compose-2.7.0-60 /Users/vickylawren
 com.gamevault.app-jetified-media3-exoplayer-1.2.1-61 /Users/vickylawrenz/.gradle/caches/transforms-3/f2932427b8127f5d00bef8cf847ca143/transformed/jetified-media3-exoplayer-1.2.1/res
 com.gamevault.app-jetified-ui-graphics-release-62 /Users/vickylawrenz/.gradle/caches/transforms-3/f88c04fc33cde96ce93628d7607a8055/transformed/jetified-ui-graphics-release/res
 com.gamevault.app-jetified-media3-ui-1.2.1-63 /Users/vickylawrenz/.gradle/caches/transforms-3/f9b1d11d77c894c58cfca424a4bc1b89/transformed/jetified-media3-ui-1.2.1/res
-com.gamevault.app-resValues-64 /Users/vickylawrenz/jarvis-implementation/gamevault/app/build/generated/res/resValues/debug
-com.gamevault.app-packageDebugResources-65 /Users/vickylawrenz/jarvis-implementation/gamevault/app/build/intermediates/incremental/debug/packageDebugResources/merged.dir
-com.gamevault.app-packageDebugResources-66 /Users/vickylawrenz/jarvis-implementation/gamevault/app/build/intermediates/incremental/debug/packageDebugResources/stripped.dir
-com.gamevault.app-merged_res-67 /Users/vickylawrenz/jarvis-implementation/gamevault/app/build/intermediates/merged_res/debug
-com.gamevault.app-debug-68 /Users/vickylawrenz/jarvis-implementation/gamevault/app/src/debug/res
-com.gamevault.app-main-69 /Users/vickylawrenz/jarvis-implementation/gamevault/app/src/main/res
+com.gamevault.app-resValues-64 /Users/vickylawrenz/gamevault/app/build/generated/res/resValues/debug
+com.gamevault.app-packageDebugResources-65 /Users/vickylawrenz/gamevault/app/build/intermediates/incremental/debug/packageDebugResources/merged.dir
+com.gamevault.app-packageDebugResources-66 /Users/vickylawrenz/gamevault/app/build/intermediates/incremental/debug/packageDebugResources/stripped.dir
+com.gamevault.app-merged_res-67 /Users/vickylawrenz/gamevault/app/build/intermediates/merged_res/debug
+com.gamevault.app-debug-68 /Users/vickylawrenz/gamevault/app/src/debug/res
+com.gamevault.app-main-69 /Users/vickylawrenz/gamevault/app/src/main/res
