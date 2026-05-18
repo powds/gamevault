@@ -62,14 +62,16 @@
    - Secret unlock: tap 4 corners (TL -> TR -> BL -> BR)
    - Fallback: numeric PIN
    - Pattern lock (3x3 grid draw)
+   - Decoy PIN system
 
-3. **File Hiding** - PARTIAL
+3. **File Hiding** - DONE
    - Hide photos (JPG, PNG, GIF, WEBP)
    - Hide videos (MP4, MKV, AVI, MOV, WEBM)
    - Hide documents (PDF, DOC, DOCX, XLS, XLSX, PPT, TXT)
    - Basic file management
+   - File picker integration
 
-4. **Built-in Viewers** - PARTIAL
+4. **Built-in Viewers** - DONE
    - Photo viewer with zoom
    - Video player with basic controls
    - PDF viewer
@@ -78,28 +80,29 @@
    - List installed apps
    - Hide apps from launcher
    - Launch hidden apps from within vault
+   - App list with search functionality
+   - Lock/unlock individual apps
 
-6. **File Browser** - PARTIAL
+6. **File Browser** - DONE
    - Browse device storage
    - Import files to vault
 
 ### Phase 2 Features - IN PROGRESS
-7. **Categories/Folders** - PENDING
+7. **Categories/Folders** - IN PROGRESS
    - Organize hidden content into folders
    - Sort by date, type, size
 
-8. **Search** - PENDING
+8. **Search** - IN PROGRESS
    - Search files by name
    - Search apps by name
 
-9. **Thumbnails** - PENDING
+9. **Thumbnails** - IN PROGRESS
    - Generate thumbnails for hidden photos/videos
 
-### Phase 3 Features - COMPLETED
+### Phase 3 Features - PENDING
 10. **Cloud Backup** (Google Drive) - PENDING
-11. **Decoy Profile** (fake vault with fake content) - DONE
-12. **Break-in Alert** (capture photo on wrong password) - DONE
-13. **Biometric Authentication** - DONE
+11. **App Lock** (lock individual apps with vault password) - PENDING
+12. **Encrypted file storage** - PENDING
 
 ---
 
@@ -166,25 +169,27 @@
 - [x] Corner tap vault unlock mechanism
 - [x] Pattern lock setup and verification
 - [x] PIN lock setup and verification
-- [x] Biometric unlock (AndroidX Biometric)
+- [x] Biometric unlock (AndroidX Biometric) - UI ready, needs hardware
 - [x] App hider (hide apps from launcher)
 - [x] App launcher (launch hidden apps)
 - [x] File viewer (photos, videos, documents)
-- [x] Settings screen
+- [x] Settings screen with security options
 - [x] Decoy vault with fake content
 - [x] Intruder capture (photo on wrong attempt)
 - [x] 2048 puzzle app icon (PNG + adaptive)
+- [x] App list with search functionality
+- [x] Vault storage info display
+- [x] Auto-lock functionality
 
 ### IN PROGRESS
-- [ ] File import/export
-- [ ] Encrypted file storage
-- [ ] Folder organization
+- [ ] Folder organization for files
+- [ ] Thumbnails display in file grid
+- [ ] Search functionality in vault files
 
 ### PENDING
 - [ ] Cloud backup to Google Drive
-- [ ] Thumbnails for media
-- [ ] Search functionality
-- [ ] App lock (lock individual apps)
+- [ ] Encrypted file storage (AES-256)
+- [ ] App lock (lock individual apps with vault password)
 
 ---
 
@@ -244,3 +249,12 @@ gamevault/
 - Content rating: Everyone
 - Price: Free (with optional premium features)
 - Requires: $25 one-time developer registration
+
+---
+
+## 9. Current Build Info
+
+**Last Updated:** May 2026
+**GitHub:** https://github.com/powds/gamevault-vault
+**Build Status:** BUILD SUCCESSFUL
+**APK Size:** ~20MB
