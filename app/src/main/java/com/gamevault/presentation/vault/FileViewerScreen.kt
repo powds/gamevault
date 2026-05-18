@@ -76,7 +76,7 @@ fun FileViewerScreen(
                     VaultItemType.PHOTO -> PhotoViewer(path = item.path)
                     VaultItemType.VIDEO -> VideoViewer(path = item.path)
                     VaultItemType.DOCUMENT -> DocumentViewer(path = item.path)
-                    VaultItemType.APP -> {
+                    VaultItemType.APP, VaultItemType.AUDIO, VaultItemType.OTHER -> {
                         Box(
                             modifier = Modifier.fillMaxSize(),
                             contentAlignment = Alignment.Center

@@ -2,10 +2,7 @@ package com.gamevault.di
 
 import android.content.Context
 import androidx.room.Room
-import com.gamevault.data.local.GameVaultDatabase
-import com.gamevault.data.local.GameStateDao
-import com.gamevault.data.local.HiddenAppDao
-import com.gamevault.data.local.VaultItemDao
+import com.gamevault.data.local.*
 import com.gamevault.domain.usecase.GameEngine
 import dagger.Module
 import dagger.Provides
@@ -20,15 +17,7 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideGameEngine(): GameEngine {
-        return GameEngine()
-    }
-
-    @Provides
-    @Singleton
-    fun provideContext(@ApplicationContext context: Context): Context {
-        return context
-    }
+    fun provideGameEngine(): GameEngine = GameEngine()
 
     @Provides
     @Singleton
@@ -41,17 +30,14 @@ object AppModule {
     }
 
     @Provides
-    fun provideVaultItemDao(database: GameVaultDatabase): VaultItemDao {
-        return database.vaultItemDao()
-    }
+    fun provideVaultFolderDao(database: GameVaultDatabase): VaultFolderDao = database.vaultFolderDao()
 
     @Provides
-    fun provideHiddenAppDao(database: GameVaultDatabase): HiddenAppDao {
-        return database.hiddenAppDao()
-    }
+    fun provideVaultItemDao(database: GameVaultDatabase): VaultItemDao = database.vaultItemDao()
 
     @Provides
-    fun provideGameStateDao(database: GameVaultDatabase): GameStateDao {
-        return database.gameStateDao()
-    }
+    fun provideHiddenAppDao(database: GameVaultDatabase): HiddenAppDao = database.hiddenAppDao()
+
+    @Provides
+    fun provideGameStateDao(database: GameVaultDatabase): GameStateDao = database.gameStateDao()
 }

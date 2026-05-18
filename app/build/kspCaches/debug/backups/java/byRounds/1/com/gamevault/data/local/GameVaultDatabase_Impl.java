@@ -26,6 +26,8 @@ import javax.annotation.processing.Generated;
 @Generated("androidx.room.RoomProcessor")
 @SuppressWarnings({"unchecked", "deprecation"})
 public final class GameVaultDatabase_Impl extends GameVaultDatabase {
+  private volatile VaultFolderDao _vaultFolderDao;
+
   private volatile VaultItemDao _vaultItemDao;
 
   private volatile HiddenAppDao _hiddenAppDao;
@@ -35,18 +37,20 @@ public final class GameVaultDatabase_Impl extends GameVaultDatabase {
   @Override
   @NonNull
   protected SupportSQLiteOpenHelper createOpenHelper(@NonNull final DatabaseConfiguration config) {
-    final SupportSQLiteOpenHelper.Callback _openCallback = new RoomOpenHelper(config, new RoomOpenHelper.Delegate(2) {
+    final SupportSQLiteOpenHelper.Callback _openCallback = new RoomOpenHelper(config, new RoomOpenHelper.Delegate(3) {
       @Override
       public void createAllTables(@NonNull final SupportSQLiteDatabase db) {
-        db.execSQL("CREATE TABLE IF NOT EXISTS `vault_items` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT NOT NULL, `type` TEXT NOT NULL, `path` TEXT NOT NULL, `size` INTEGER NOT NULL, `dateAdded` INTEGER NOT NULL, `thumbnailPath` TEXT)");
+        db.execSQL("CREATE TABLE IF NOT EXISTS `vault_folders` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT NOT NULL, `createdAt` INTEGER NOT NULL)");
+        db.execSQL("CREATE TABLE IF NOT EXISTS `vault_items` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT NOT NULL, `type` TEXT NOT NULL, `path` TEXT NOT NULL, `size` INTEGER NOT NULL, `dateAdded` INTEGER NOT NULL, `thumbnailPath` TEXT, `folderId` INTEGER)");
         db.execSQL("CREATE TABLE IF NOT EXISTS `hidden_apps` (`packageName` TEXT NOT NULL, `appName` TEXT NOT NULL, `iconPath` TEXT, `dateHidden` INTEGER NOT NULL, PRIMARY KEY(`packageName`))");
         db.execSQL("CREATE TABLE IF NOT EXISTS `game_state` (`id` INTEGER NOT NULL, `score` INTEGER NOT NULL, `bestScore` INTEGER NOT NULL, `gridJson` TEXT NOT NULL, PRIMARY KEY(`id`))");
         db.execSQL("CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)");
-        db.execSQL("INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '8937e5b5ed04880d9513a34fede3bff6')");
+        db.execSQL("INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'a8eb3049413655a7b6911147acd7f039')");
       }
 
       @Override
       public void dropAllTables(@NonNull final SupportSQLiteDatabase db) {
+        db.execSQL("DROP TABLE IF EXISTS `vault_folders`");
         db.execSQL("DROP TABLE IF EXISTS `vault_items`");
         db.execSQL("DROP TABLE IF EXISTS `hidden_apps`");
         db.execSQL("DROP TABLE IF EXISTS `game_state`");
@@ -93,7 +97,20 @@ public final class GameVaultDatabase_Impl extends GameVaultDatabase {
       @NonNull
       public RoomOpenHelper.ValidationResult onValidateSchema(
           @NonNull final SupportSQLiteDatabase db) {
-        final HashMap<String, TableInfo.Column> _columnsVaultItems = new HashMap<String, TableInfo.Column>(7);
+        final HashMap<String, TableInfo.Column> _columnsVaultFolders = new HashMap<String, TableInfo.Column>(3);
+        _columnsVaultFolders.put("id", new TableInfo.Column("id", "INTEGER", true, 1, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsVaultFolders.put("name", new TableInfo.Column("name", "TEXT", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsVaultFolders.put("createdAt", new TableInfo.Column("createdAt", "INTEGER", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        final HashSet<TableInfo.ForeignKey> _foreignKeysVaultFolders = new HashSet<TableInfo.ForeignKey>(0);
+        final HashSet<TableInfo.Index> _indicesVaultFolders = new HashSet<TableInfo.Index>(0);
+        final TableInfo _infoVaultFolders = new TableInfo("vault_folders", _columnsVaultFolders, _foreignKeysVaultFolders, _indicesVaultFolders);
+        final TableInfo _existingVaultFolders = TableInfo.read(db, "vault_folders");
+        if (!_infoVaultFolders.equals(_existingVaultFolders)) {
+          return new RoomOpenHelper.ValidationResult(false, "vault_folders(com.gamevault.data.local.VaultFolderEntity).\n"
+                  + " Expected:\n" + _infoVaultFolders + "\n"
+                  + " Found:\n" + _existingVaultFolders);
+        }
+        final HashMap<String, TableInfo.Column> _columnsVaultItems = new HashMap<String, TableInfo.Column>(8);
         _columnsVaultItems.put("id", new TableInfo.Column("id", "INTEGER", true, 1, null, TableInfo.CREATED_FROM_ENTITY));
         _columnsVaultItems.put("name", new TableInfo.Column("name", "TEXT", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
         _columnsVaultItems.put("type", new TableInfo.Column("type", "TEXT", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
@@ -101,6 +118,7 @@ public final class GameVaultDatabase_Impl extends GameVaultDatabase {
         _columnsVaultItems.put("size", new TableInfo.Column("size", "INTEGER", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
         _columnsVaultItems.put("dateAdded", new TableInfo.Column("dateAdded", "INTEGER", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
         _columnsVaultItems.put("thumbnailPath", new TableInfo.Column("thumbnailPath", "TEXT", false, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsVaultItems.put("folderId", new TableInfo.Column("folderId", "INTEGER", false, 0, null, TableInfo.CREATED_FROM_ENTITY));
         final HashSet<TableInfo.ForeignKey> _foreignKeysVaultItems = new HashSet<TableInfo.ForeignKey>(0);
         final HashSet<TableInfo.Index> _indicesVaultItems = new HashSet<TableInfo.Index>(0);
         final TableInfo _infoVaultItems = new TableInfo("vault_items", _columnsVaultItems, _foreignKeysVaultItems, _indicesVaultItems);
@@ -140,7 +158,7 @@ public final class GameVaultDatabase_Impl extends GameVaultDatabase {
         }
         return new RoomOpenHelper.ValidationResult(true, null);
       }
-    }, "8937e5b5ed04880d9513a34fede3bff6", "cee515f95cfc8a3e006cead85e7f72f3");
+    }, "a8eb3049413655a7b6911147acd7f039", "9a92007906c094335b4ae753098b61cf");
     final SupportSQLiteOpenHelper.Configuration _sqliteConfig = SupportSQLiteOpenHelper.Configuration.builder(config.context).name(config.name).callback(_openCallback).build();
     final SupportSQLiteOpenHelper _helper = config.sqliteOpenHelperFactory.create(_sqliteConfig);
     return _helper;
@@ -151,7 +169,7 @@ public final class GameVaultDatabase_Impl extends GameVaultDatabase {
   protected InvalidationTracker createInvalidationTracker() {
     final HashMap<String, String> _shadowTablesMap = new HashMap<String, String>(0);
     final HashMap<String, Set<String>> _viewTables = new HashMap<String, Set<String>>(0);
-    return new InvalidationTracker(this, _shadowTablesMap, _viewTables, "vault_items","hidden_apps","game_state");
+    return new InvalidationTracker(this, _shadowTablesMap, _viewTables, "vault_folders","vault_items","hidden_apps","game_state");
   }
 
   @Override
@@ -160,6 +178,7 @@ public final class GameVaultDatabase_Impl extends GameVaultDatabase {
     final SupportSQLiteDatabase _db = super.getOpenHelper().getWritableDatabase();
     try {
       super.beginTransaction();
+      _db.execSQL("DELETE FROM `vault_folders`");
       _db.execSQL("DELETE FROM `vault_items`");
       _db.execSQL("DELETE FROM `hidden_apps`");
       _db.execSQL("DELETE FROM `game_state`");
@@ -177,6 +196,7 @@ public final class GameVaultDatabase_Impl extends GameVaultDatabase {
   @NonNull
   protected Map<Class<?>, List<Class<?>>> getRequiredTypeConverters() {
     final HashMap<Class<?>, List<Class<?>>> _typeConvertersMap = new HashMap<Class<?>, List<Class<?>>>();
+    _typeConvertersMap.put(VaultFolderDao.class, VaultFolderDao_Impl.getRequiredConverters());
     _typeConvertersMap.put(VaultItemDao.class, VaultItemDao_Impl.getRequiredConverters());
     _typeConvertersMap.put(HiddenAppDao.class, HiddenAppDao_Impl.getRequiredConverters());
     _typeConvertersMap.put(GameStateDao.class, GameStateDao_Impl.getRequiredConverters());
@@ -196,6 +216,20 @@ public final class GameVaultDatabase_Impl extends GameVaultDatabase {
       @NonNull final Map<Class<? extends AutoMigrationSpec>, AutoMigrationSpec> autoMigrationSpecs) {
     final List<Migration> _autoMigrations = new ArrayList<Migration>();
     return _autoMigrations;
+  }
+
+  @Override
+  public VaultFolderDao vaultFolderDao() {
+    if (_vaultFolderDao != null) {
+      return _vaultFolderDao;
+    } else {
+      synchronized(this) {
+        if(_vaultFolderDao == null) {
+          _vaultFolderDao = new VaultFolderDao_Impl(this);
+        }
+        return _vaultFolderDao;
+      }
+    }
   }
 
   @Override

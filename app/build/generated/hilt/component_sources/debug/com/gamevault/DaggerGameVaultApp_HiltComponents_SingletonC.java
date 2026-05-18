@@ -9,12 +9,14 @@ import androidx.lifecycle.ViewModel;
 import com.gamevault.data.local.GameStateDao;
 import com.gamevault.data.local.GameVaultDatabase;
 import com.gamevault.data.local.HiddenAppDao;
+import com.gamevault.data.local.VaultFolderDao;
 import com.gamevault.data.local.VaultItemDao;
 import com.gamevault.data.repository.VaultRepository;
 import com.gamevault.di.AppModule_ProvideDatabaseFactory;
 import com.gamevault.di.AppModule_ProvideGameEngineFactory;
 import com.gamevault.di.AppModule_ProvideGameStateDaoFactory;
 import com.gamevault.di.AppModule_ProvideHiddenAppDaoFactory;
+import com.gamevault.di.AppModule_ProvideVaultFolderDaoFactory;
 import com.gamevault.di.AppModule_ProvideVaultItemDaoFactory;
 import com.gamevault.domain.usecase.GameEngine;
 import com.gamevault.presentation.game.GameViewModel;
@@ -553,6 +555,10 @@ public final class DaggerGameVaultApp_HiltComponents_SingletonC {
 
     }
 
+    private VaultFolderDao vaultFolderDao() {
+      return AppModule_ProvideVaultFolderDaoFactory.provideVaultFolderDao(provideDatabaseProvider.get());
+    }
+
     private VaultItemDao vaultItemDao() {
       return AppModule_ProvideVaultItemDaoFactory.provideVaultItemDao(provideDatabaseProvider.get());
     }
@@ -609,7 +615,7 @@ public final class DaggerGameVaultApp_HiltComponents_SingletonC {
           return (T) AppModule_ProvideGameEngineFactory.provideGameEngine();
 
           case 1: // com.gamevault.data.repository.VaultRepository 
-          return (T) new VaultRepository(ApplicationContextModule_ProvideContextFactory.provideContext(singletonCImpl.applicationContextModule), singletonCImpl.vaultItemDao(), singletonCImpl.hiddenAppDao(), singletonCImpl.gameStateDao());
+          return (T) new VaultRepository(ApplicationContextModule_ProvideContextFactory.provideContext(singletonCImpl.applicationContextModule), singletonCImpl.vaultFolderDao(), singletonCImpl.vaultItemDao(), singletonCImpl.hiddenAppDao(), singletonCImpl.gameStateDao());
 
           case 2: // com.gamevault.data.local.GameVaultDatabase 
           return (T) AppModule_ProvideDatabaseFactory.provideDatabase(ApplicationContextModule_ProvideContextFactory.provideContext(singletonCImpl.applicationContextModule));

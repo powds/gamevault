@@ -3,6 +3,7 @@ package com.gamevault.data.repository;
 import android.content.Context;
 import com.gamevault.data.local.GameStateDao;
 import com.gamevault.data.local.HiddenAppDao;
+import com.gamevault.data.local.VaultFolderDao;
 import com.gamevault.data.local.VaultItemDao;
 import dagger.internal.DaggerGenerated;
 import dagger.internal.Factory;
@@ -27,6 +28,8 @@ import javax.inject.Provider;
 public final class VaultRepository_Factory implements Factory<VaultRepository> {
   private final Provider<Context> contextProvider;
 
+  private final Provider<VaultFolderDao> vaultFolderDaoProvider;
+
   private final Provider<VaultItemDao> vaultItemDaoProvider;
 
   private final Provider<HiddenAppDao> hiddenAppDaoProvider;
@@ -34,9 +37,10 @@ public final class VaultRepository_Factory implements Factory<VaultRepository> {
   private final Provider<GameStateDao> gameStateDaoProvider;
 
   public VaultRepository_Factory(Provider<Context> contextProvider,
-      Provider<VaultItemDao> vaultItemDaoProvider, Provider<HiddenAppDao> hiddenAppDaoProvider,
-      Provider<GameStateDao> gameStateDaoProvider) {
+      Provider<VaultFolderDao> vaultFolderDaoProvider, Provider<VaultItemDao> vaultItemDaoProvider,
+      Provider<HiddenAppDao> hiddenAppDaoProvider, Provider<GameStateDao> gameStateDaoProvider) {
     this.contextProvider = contextProvider;
+    this.vaultFolderDaoProvider = vaultFolderDaoProvider;
     this.vaultItemDaoProvider = vaultItemDaoProvider;
     this.hiddenAppDaoProvider = hiddenAppDaoProvider;
     this.gameStateDaoProvider = gameStateDaoProvider;
@@ -44,17 +48,17 @@ public final class VaultRepository_Factory implements Factory<VaultRepository> {
 
   @Override
   public VaultRepository get() {
-    return newInstance(contextProvider.get(), vaultItemDaoProvider.get(), hiddenAppDaoProvider.get(), gameStateDaoProvider.get());
+    return newInstance(contextProvider.get(), vaultFolderDaoProvider.get(), vaultItemDaoProvider.get(), hiddenAppDaoProvider.get(), gameStateDaoProvider.get());
   }
 
   public static VaultRepository_Factory create(Provider<Context> contextProvider,
-      Provider<VaultItemDao> vaultItemDaoProvider, Provider<HiddenAppDao> hiddenAppDaoProvider,
-      Provider<GameStateDao> gameStateDaoProvider) {
-    return new VaultRepository_Factory(contextProvider, vaultItemDaoProvider, hiddenAppDaoProvider, gameStateDaoProvider);
+      Provider<VaultFolderDao> vaultFolderDaoProvider, Provider<VaultItemDao> vaultItemDaoProvider,
+      Provider<HiddenAppDao> hiddenAppDaoProvider, Provider<GameStateDao> gameStateDaoProvider) {
+    return new VaultRepository_Factory(contextProvider, vaultFolderDaoProvider, vaultItemDaoProvider, hiddenAppDaoProvider, gameStateDaoProvider);
   }
 
-  public static VaultRepository newInstance(Context context, VaultItemDao vaultItemDao,
-      HiddenAppDao hiddenAppDao, GameStateDao gameStateDao) {
-    return new VaultRepository(context, vaultItemDao, hiddenAppDao, gameStateDao);
+  public static VaultRepository newInstance(Context context, VaultFolderDao vaultFolderDao,
+      VaultItemDao vaultItemDao, HiddenAppDao hiddenAppDao, GameStateDao gameStateDao) {
+    return new VaultRepository(context, vaultFolderDao, vaultItemDao, hiddenAppDao, gameStateDao);
   }
 }

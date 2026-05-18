@@ -379,7 +379,7 @@ private fun FileItem(
                         VaultItemType.PHOTO -> Icons.Default.Image
                         VaultItemType.VIDEO -> Icons.Default.VideoFile
                         VaultItemType.DOCUMENT -> Icons.Default.Description
-                        VaultItemType.APP -> Icons.Default.Android
+                        VaultItemType.APP, VaultItemType.AUDIO, VaultItemType.OTHER -> Icons.Default.Android
                     },
                     contentDescription = null,
                     tint = VaultPrimary,

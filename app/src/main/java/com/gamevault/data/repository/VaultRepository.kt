@@ -8,18 +8,12 @@ import android.media.ThumbnailUtils
 import android.os.Build
 import android.provider.MediaStore
 import android.util.Size
-import com.gamevault.data.local.GameStateDao
-import com.gamevault.data.local.GameStateEntity
-import com.gamevault.data.local.HiddenAppDao
-import com.gamevault.data.local.HiddenAppEntity
-import com.gamevault.data.local.VaultItemDao
-import com.gamevault.data.local.VaultItemEntity
-import com.gamevault.domain.model.HiddenApp
-import com.gamevault.domain.model.VaultItem
-import com.gamevault.domain.model.VaultItemType
+import com.gamevault.data.local.*
+import com.gamevault.domain.model.*
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
@@ -31,157 +25,56 @@ import javax.inject.Singleton
 @Singleton
 class VaultRepository @Inject constructor(
     @ApplicationContext private val context: Context,
+    private val vaultFolderDao: VaultFolderDao,
     private val vaultItemDao: VaultItemDao,
     private val hiddenAppDao: HiddenAppDao,
     private val gameStateDao: GameStateDao
 ) {
     private val prefs: SharedPreferences = context.getSharedPreferences("gamevault_prefs", Context.MODE_PRIVATE)
     private val vaultDir: File = File(context.filesDir, "vault_files")
-    
+
     init {
         if (!vaultDir.exists()) {
             vaultDir.mkdirs()
         }
     }
 
-    // ==================== Pattern/PIN ====================
-    
-    fun isPatternSet(): Boolean = prefs.getBoolean("pattern_set", false)
-    
-    fun setPattern(pattern: String) {
-        prefs.edit().putString("pattern", pattern).putBoolean("pattern_set", true).apply()
-    }
-    
-    fun getPattern(): String = prefs.getString("pattern", "") ?: ""
-    
-    fun isPinSet(): Boolean = prefs.getBoolean("pin_set", false)
-    
-    fun setPin(pin: String) {
-        prefs.edit().putString("pin", pin).putBoolean("pin_set", true).apply()
-    }
-    
-    fun getPin(): String = prefs.getString("pin", "") ?: ""
-    
-    fun isDecoyPinSet(): Boolean = prefs.getBoolean("decoy_pin_set", false)
-    
-    fun setDecoyPin(pin: String) {
-        prefs.edit().putString("decoy_pin", pin).putBoolean("decoy_pin_set", true).apply()
-    }
-    
-    fun getDecoyPin(): String = prefs.getString("decoy_pin", "") ?: ""
-    
-    fun verifyPattern(inputPattern: String): Boolean {
-        val saved = prefs.getString("pattern", "") ?: ""
-        return saved == inputPattern
-    }
-    
-    fun verifyPin(inputPin: String): Boolean {
-        val saved = prefs.getString("pin", "") ?: ""
-        return saved == inputPin
-    }
-    
-    fun verifyDecoyPin(inputPin: String): Boolean {
-        val saved = prefs.getString("decoy_pin", "") ?: ""
-        return saved == inputPin
-    }
-    
-    fun isBiometricEnabled(): Boolean = prefs.getBoolean("biometric_enabled", false)
-    
-    fun setBiometricEnabled(enabled: Boolean) {
-        prefs.edit().putBoolean("biometric_enabled", enabled).apply()
-    }
+    // ==================== Folders ====================
 
-    fun clearSecurity() {
-        prefs.edit()
-            .remove("pattern")
-            .remove("pattern_set")
-            .remove("pin")
-            .remove("pin_set")
-            .remove("decoy_pin")
-            .remove("decoy_pin_set")
-            .apply()
-    }
-
-    // ==================== Auto Lock ====================
-    
-    fun getAutoLockTimeout(): Int = prefs.getInt("auto_lock_timeout", 60) // seconds
-    
-    fun setAutoLockTimeout(seconds: Int) {
-        prefs.edit().putInt("auto_lock_timeout", seconds).apply()
-    }
-    
-    fun getLastActiveTime(): Long = prefs.getLong("last_active_time", System.currentTimeMillis())
-    
-    fun updateLastActiveTime() {
-        prefs.edit().putLong("last_active_time", System.currentTimeMillis()).apply()
-    }
-    
-    fun isAutoLockEnabled(): Boolean = prefs.getBoolean("auto_lock_enabled", true)
-    
-    fun setAutoLockEnabled(enabled: Boolean) {
-        prefs.edit().putBoolean("auto_lock_enabled", enabled).apply()
-    }
-    
-    fun shouldAutoLock(): Boolean {
-        if (!isAutoLockEnabled()) return false
-        val timeout = getAutoLockTimeout()
-        val lastActive = getLastActiveTime()
-        val elapsed = (System.currentTimeMillis() - lastActive) / 1000
-        return elapsed > timeout
-    }
-
-    // ==================== Intruder Capture ====================
-    
-    fun getIntruderPhotosPath(): String {
-        val path = context.getDir("intruder_photos", Context.MODE_PRIVATE).absolutePath
-        return path
-    }
-    
-    fun isIntruderCaptureEnabled(): Boolean = prefs.getBoolean("intruder_capture", true)
-    
-    fun setIntruderCaptureEnabled(enabled: Boolean) {
-        prefs.edit().putBoolean("intruder_capture", enabled).apply()
-    }
-    
-    fun getFailedAttemptCount(): Int = prefs.getInt("failed_attempts", 0)
-    
-    fun incrementFailedAttempts(): Int {
-        val count = getFailedAttemptCount() + 1
-        prefs.edit().putInt("failed_attempts", count).apply()
-        return count
-    }
-    
-    fun resetFailedAttempts() {
-        prefs.edit().putInt("failed_attempts", 0).apply()
-    }
-
-    // ==================== Game State ====================
-
-    fun getBestScore(): Int = prefs.getInt("best_score", 0)
-    
-    fun saveBestScore(score: Int) {
-        if (score > getBestScore()) {
-            prefs.edit().putInt("best_score", score).apply()
+    fun getFolders(): Flow<List<VaultFolder>> {
+        return vaultFolderDao.getAllFolders().map { entities ->
+            entities.map { it.toDomain() }
         }
     }
 
-    suspend fun getGameState(): GameStateEntity? = gameStateDao.getGameState()
-    
-    suspend fun saveGameState(score: Int, bestScore: Int, grid: List<List<Int>>) {
-        val gridJson = JSONArray(grid.map { row ->
-            JSONArray(row)
-        }).toString()
-        
-        saveBestScore(bestScore)
-        
-        gameStateDao.saveGameState(
-            GameStateEntity(
-                id = 1,
-                score = score,
-                bestScore = bestScore,
-                gridJson = gridJson
-            )
+    suspend fun createFolder(name: String): Long {
+        val folder = VaultFolderEntity(
+            name = name,
+            createdAt = System.currentTimeMillis()
         )
+        return vaultFolderDao.insertFolder(folder)
+    }
+
+    suspend fun deleteFolder(folderId: Long) {
+        // Move all items in folder to root
+        val items = vaultItemDao.getItemsInFolder(folderId)
+        items.collect { itemList ->
+            itemList.forEach { item ->
+                vaultItemDao.updateItem(item.copy(folderId = null))
+            }
+        }
+        vaultFolderDao.deleteFolderById(folderId)
+    }
+
+    suspend fun renameFolder(folderId: Long, newName: String) {
+        val folder = vaultFolderDao.getFolderById(folderId)
+        folder?.let {
+            vaultFolderDao.updateFolder(it.copy(name = newName))
+        }
+    }
+
+    suspend fun getFolderItemCount(folderId: Long): Int {
+        return vaultFolderDao.getItemCountInFolder(folderId)
     }
 
     // ==================== Vault Items ====================
@@ -192,10 +85,26 @@ class VaultRepository @Inject constructor(
         }
     }
 
+    fun getRootItems(): Flow<List<VaultItem>> {
+        return vaultItemDao.getRootItems().map { entities ->
+            entities.map { it.toDomain() }
+        }
+    }
+
+    fun getItemsInFolder(folderId: Long): Flow<List<VaultItem>> {
+        return vaultItemDao.getItemsInFolder(folderId).map { entities ->
+            entities.map { it.toDomain() }
+        }
+    }
+
     suspend fun addVaultItem(item: VaultItem): Long {
         val entity = item.toEntity()
         vaultItemDao.insertItem(entity)
         return entity.id
+    }
+
+    suspend fun updateVaultItem(item: VaultItem) {
+        vaultItemDao.updateItem(item.toEntity())
     }
 
     suspend fun deleteVaultItem(id: Long) {
@@ -206,22 +115,40 @@ class VaultRepository @Inject constructor(
         return vaultItemDao.getItemById(id)?.toDomain()
     }
 
+    suspend fun moveItemToFolder(itemId: Long, folderId: Long?) {
+        val item = vaultItemDao.getItemById(itemId)
+        item?.let {
+            vaultItemDao.updateItem(it.copy(folderId = folderId))
+        }
+    }
+
     suspend fun deleteAllVaultItems() {
-        // Delete all files from vault directory
         vaultDir.listFiles()?.forEach { it.delete() }
-        // Clear database
         vaultItemDao.deleteAll()
     }
 
     // ==================== Search ====================
 
-    fun searchVaultItems(query: String, items: List<VaultItem>): List<VaultItem> {
-        if (query.isBlank()) return items
-        val lowerQuery = query.lowercase()
-        return items.filter { item ->
-            item.name.lowercase().contains(lowerQuery) ||
-            item.type.name.lowercase().contains(lowerQuery)
+    fun searchVaultItems(query: String): Flow<List<VaultItem>> {
+        return vaultItemDao.searchItems(query).map { entities ->
+            entities.map { it.toDomain() }
         }
+    }
+
+    fun getItemsByType(type: VaultItemType): Flow<List<VaultItem>> {
+        return vaultItemDao.getItemsByType(type.name).map { entities ->
+            entities.map { it.toDomain() }
+        }
+    }
+
+    fun sortItems(items: List<VaultItem>, config: VaultSortConfig): List<VaultItem> {
+        val sorted = when (config.sortBy) {
+            SortBy.DATE -> items.sortedBy { it.dateAdded }
+            SortBy.NAME -> items.sortedBy { it.name.lowercase() }
+            SortBy.SIZE -> items.sortedBy { it.size }
+            SortBy.TYPE -> items.sortedBy { it.type.ordinal }
+        }
+        return if (config.sortOrder == SortOrder.DESCENDING) sorted.reversed() else sorted
     }
 
     // ==================== Thumbnails ====================
@@ -230,10 +157,10 @@ class VaultRepository @Inject constructor(
         try {
             val thumbnailDir = File(context.filesDir, "thumbnails")
             if (!thumbnailDir.exists()) thumbnailDir.mkdirs()
-            
+
             val thumbnailFile = File(thumbnailDir, "thumb_${item.id}.jpg")
             if (thumbnailFile.exists()) return@withContext thumbnailFile.absolutePath
-            
+
             when (item.type) {
                 VaultItemType.PHOTO -> generatePhotoThumbnail(item.path, thumbnailFile)
                 VaultItemType.VIDEO -> generateVideoThumbnail(item.path, thumbnailFile)
@@ -244,10 +171,26 @@ class VaultRepository @Inject constructor(
         }
     }
 
+    suspend fun loadThumbnail(item: VaultItem): Bitmap? = withContext(Dispatchers.IO) {
+        try {
+            val thumbnailPath = item.thumbnailPath ?: return@withContext null
+            val file = File(thumbnailPath)
+            if (file.exists()) {
+                BitmapFactory.decodeFile(thumbnailPath)
+            } else {
+                // Generate if missing
+                val path = generateThumbnail(item)
+                path?.let { BitmapFactory.decodeFile(it) }
+            }
+        } catch (e: Exception) {
+            null
+        }
+    }
+
     private fun generatePhotoThumbnail(sourcePath: String, destFile: File): String? {
         return try {
             val options = BitmapFactory.Options().apply {
-                inSampleSize = 4 // Scale down to 1/4
+                inSampleSize = 4
             }
             val bitmap = BitmapFactory.decodeFile(sourcePath, options)
             if (bitmap != null) {
@@ -267,33 +210,29 @@ class VaultRepository @Inject constructor(
 
     private fun generateVideoThumbnail(sourcePath: String, destFile: File): String? {
         return try {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                val bitmap = context.contentResolver.loadThumbnail(
+            val bitmap = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                context.contentResolver.loadThumbnail(
                     android.net.Uri.fromFile(File(sourcePath)),
                     Size(200, 200),
                     null
                 )
+            } else {
+                @Suppress("DEPRECATION")
+                ThumbnailUtils.createVideoThumbnail(sourcePath, MediaStore.Images.Thumbnails.MINI_KIND)
+            }
+            if (bitmap != null) {
                 FileOutputStream(destFile).use { out ->
                     bitmap.compress(Bitmap.CompressFormat.JPEG, 80, out)
                 }
                 bitmap.recycle()
                 destFile.absolutePath
-            } else {
-                val bitmap = ThumbnailUtils.createVideoThumbnail(sourcePath, MediaStore.Images.Thumbnails.MINI_KIND)
-                if (bitmap != null) {
-                    FileOutputStream(destFile).use { out ->
-                        bitmap.compress(Bitmap.CompressFormat.JPEG, 80, out)
-                    }
-                    bitmap.recycle()
-                    destFile.absolutePath
-                } else null
-            }
+            } else null
         } catch (e: Exception) {
             null
         }
     }
 
-    // ==================== Vault Storage Info ====================
+    // ==================== Vault Storage ====================
 
     fun getVaultStorageUsed(): Long {
         return vaultDir.walkTopDown().filter { it.isFile }.sumOf { it.length() }
@@ -328,55 +267,82 @@ class VaultRepository @Inject constructor(
         return hiddenAppDao.getHiddenApp(packageName) != null
     }
 
-    // ==================== Decoy Content ====================
-    
-    fun getDecoyItemCount(): Int = prefs.getInt("decoy_item_count", 0)
-    
-    fun setDecoyItemCount(count: Int) {
-        prefs.edit().putInt("decoy_item_count", count).apply()
+    // ==================== Security ====================
+
+    fun isPatternSet(): Boolean = prefs.getBoolean("pattern_set", false)
+    fun setPattern(pattern: String) = prefs.edit().putString("pattern", pattern).putBoolean("pattern_set", true).apply()
+    fun getPattern(): String = prefs.getString("pattern", "") ?: ""
+    fun isPinSet(): Boolean = prefs.getBoolean("pin_set", false)
+    fun setPin(pin: String) = prefs.edit().putString("pin", pin).putBoolean("pin_set", true).apply()
+    fun getPin(): String = prefs.getString("pin", "") ?: ""
+    fun verifyPattern(inputPattern: String): Boolean = getPattern() == inputPattern
+    fun verifyPin(inputPin: String): Boolean = getPin() == inputPin
+    fun clearSecurity() = prefs.edit().remove("pattern").remove("pattern_set").remove("pin").remove("pin_set").apply()
+
+    fun isDecoyPinSet(): Boolean = prefs.getBoolean("decoy_pin_set", false)
+    fun setDecoyPin(pin: String) = prefs.edit().putString("decoy_pin", pin).putBoolean("decoy_pin_set", true).apply()
+    fun getDecoyPin(): String = prefs.getString("decoy_pin", "") ?: ""
+    fun verifyDecoyPin(inputPin: String): Boolean = getDecoyPin() == inputPin
+
+    fun isBiometricEnabled(): Boolean = prefs.getBoolean("biometric_enabled", false)
+    fun setBiometricEnabled(enabled: Boolean) = prefs.edit().putBoolean("biometric_enabled", enabled).apply()
+
+    fun getAutoLockTimeout(): Int = prefs.getInt("auto_lock_timeout", 60)
+    fun setAutoLockTimeout(seconds: Int) = prefs.edit().putInt("auto_lock_timeout", seconds).apply()
+    fun getLastActiveTime(): Long = prefs.getLong("last_active_time", System.currentTimeMillis())
+    fun updateLastActiveTime() = prefs.edit().putLong("last_active_time", System.currentTimeMillis()).apply()
+    fun isAutoLockEnabled(): Boolean = prefs.getBoolean("auto_lock_enabled", true)
+    fun setAutoLockEnabled(enabled: Boolean) = prefs.edit().putBoolean("auto_lock_enabled", enabled).apply()
+    fun shouldAutoLock(): Boolean = if (!isAutoLockEnabled()) false else (System.currentTimeMillis() - getLastActiveTime()) / 1000 > getAutoLockTimeout()
+
+    fun isIntruderCaptureEnabled(): Boolean = prefs.getBoolean("intruder_capture", true)
+    fun setIntruderCaptureEnabled(enabled: Boolean) = prefs.edit().putBoolean("intruder_capture", enabled).apply()
+    fun getFailedAttemptCount(): Int = prefs.getInt("failed_attempts", 0)
+    fun incrementFailedAttempts(): Int {
+        val count = getFailedAttemptCount() + 1
+        prefs.edit().putInt("failed_attempts", count).apply()
+        return count
     }
+    fun resetFailedAttempts() = prefs.edit().putInt("failed_attempts", 0).apply()
+
+    fun getBestScore(): Int = prefs.getInt("best_score", 0)
+    fun saveBestScore(score: Int) {
+        if (score > getBestScore()) prefs.edit().putInt("best_score", score).apply()
+    }
+
+    suspend fun getGameState(): GameStateEntity? = gameStateDao.getGameState()
+
+    suspend fun saveGameState(score: Int, bestScore: Int, grid: List<List<Int>>) {
+        val gridJson = JSONArray(grid.map { row -> JSONArray(row) }).toString()
+        saveBestScore(bestScore)
+        gameStateDao.saveGameState(GameStateEntity(id = 1, score = score, bestScore = bestScore, gridJson = gridJson))
+    }
+
+    fun getDecoyItemCount(): Int = prefs.getInt("decoy_item_count", 0)
+    fun setDecoyItemCount(count: Int) = prefs.edit().putInt("decoy_item_count", count).apply()
 
     // ==================== Mappers ====================
 
-    private fun VaultItemEntity.toDomain(): VaultItem {
-        return VaultItem(
-            id = id,
-            name = name,
-            type = VaultItemType.valueOf(type),
-            path = path,
-            size = size,
-            dateAdded = dateAdded,
-            thumbnailPath = thumbnailPath
-        )
-    }
+    private fun VaultFolderEntity.toDomain(): VaultFolder = VaultFolder(id = id, name = name, createdAt = createdAt)
 
-    private fun VaultItem.toEntity(): VaultItemEntity {
-        return VaultItemEntity(
-            id = id,
-            name = name,
-            type = type.name,
-            path = path,
-            size = size,
-            dateAdded = dateAdded,
-            thumbnailPath = thumbnailPath
-        )
-    }
+    private fun VaultItemEntity.toDomain(): VaultItem = VaultItem(
+        id = id, name = name, type = VaultItemType.valueOf(type),
+        path = path, size = size, dateAdded = dateAdded,
+        thumbnailPath = thumbnailPath, folderId = folderId
+    )
 
-    private fun HiddenAppEntity.toDomain(): HiddenApp {
-        return HiddenApp(
-            packageName = packageName,
-            appName = appName,
-            iconPath = iconPath,
-            dateHidden = dateHidden
-        )
-    }
+    private fun VaultItem.toEntity(): VaultItemEntity = VaultItemEntity(
+        id = id, name = name, type = type.name, path = path,
+        size = size, dateAdded = dateAdded, thumbnailPath = thumbnailPath, folderId = folderId
+    )
 
-    private fun HiddenApp.toEntity(): HiddenAppEntity {
-        return HiddenAppEntity(
-            packageName = packageName,
-            appName = appName,
-            iconPath = iconPath,
-            dateHidden = dateHidden
-        )
-    }
+    private fun HiddenAppEntity.toDomain(): HiddenApp = HiddenApp(
+        packageName = packageName, appName = appName,
+        iconPath = iconPath, dateHidden = dateHidden
+    )
+
+    private fun HiddenApp.toEntity(): HiddenAppEntity = HiddenAppEntity(
+        packageName = packageName, appName = appName,
+        iconPath = iconPath, dateHidden = dateHidden
+    )
 }
