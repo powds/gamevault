@@ -448,9 +448,24 @@ private fun AppsTab(
     Column(
         modifier = Modifier.fillMaxSize()
     ) {
+        // Browse Apps Button at top
+        Button(
+            onClick = onBrowseApps,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 8.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = VaultPrimary)
+        ) {
+            Icon(Icons.Default.Apps, contentDescription = null)
+            Spacer(modifier = Modifier.width(8.dp))
+            Text("Browse & Hide Apps")
+        }
+
         if (hiddenApps.isEmpty()) {
             Box(
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f),
                 contentAlignment = Alignment.Center
             ) {
                 Column(
@@ -467,8 +482,9 @@ private fun AppsTab(
                         "No hidden apps",
                         color = VaultText.copy(alpha = 0.5f)
                     )
+                    Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        "Tap below to browse and hide apps",
+                        "Tap button above to browse apps",
                         color = VaultText.copy(alpha = 0.3f),
                         style = MaterialTheme.typography.bodySmall
                     )
@@ -476,7 +492,7 @@ private fun AppsTab(
             }
         } else {
             LazyColumn(
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier.weight(1f),
                 contentPadding = PaddingValues(16.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
@@ -488,21 +504,6 @@ private fun AppsTab(
                     )
                 }
             }
-        }
-
-        Spacer(modifier = Modifier.weight(1f))
-
-        // Browse Apps Button
-        Button(
-            onClick = onBrowseApps,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = VaultPrimary)
-        ) {
-            Icon(Icons.Default.Apps, contentDescription = null)
-            Spacer(modifier = Modifier.width(8.dp))
-            Text("Browse Apps")
         }
     }
 }
