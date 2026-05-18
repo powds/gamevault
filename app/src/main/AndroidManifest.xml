@@ -17,6 +17,10 @@
     <!-- Biometric -->
     <uses-permission android:name="android.permission.USE_BIOMETRIC" />
 
+    <!-- Query all packages for app hider feature -->
+    <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES"
+        tools:ignore="QueryAllPackagesPermission" />
+
     <!-- Camera for capturing photos in vault -->
     <uses-permission android:name="android.permission.CAMERA" />
 

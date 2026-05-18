@@ -1,9 +1,9 @@
 -- Merging decision tree log ---
 manifest
-ADDED from /Users/vickylawrenz/jarvis-implementation/gamevault/app/src/main/AndroidManifest.xml:2:1-48:12
-INJECTED from /Users/vickylawrenz/jarvis-implementation/gamevault/app/src/main/AndroidManifest.xml:2:1-48:12
-INJECTED from /Users/vickylawrenz/jarvis-implementation/gamevault/app/src/main/AndroidManifest.xml:2:1-48:12
-INJECTED from /Users/vickylawrenz/jarvis-implementation/gamevault/app/src/main/AndroidManifest.xml:2:1-48:12
+ADDED from /Users/vickylawrenz/gamevault/app/src/main/AndroidManifest.xml:2:1-52:12
+INJECTED from /Users/vickylawrenz/gamevault/app/src/main/AndroidManifest.xml:2:1-52:12
+INJECTED from /Users/vickylawrenz/gamevault/app/src/main/AndroidManifest.xml:2:1-52:12
+INJECTED from /Users/vickylawrenz/gamevault/app/src/main/AndroidManifest.xml:2:1-52:12
 MERGED from [io.coil-kt:coil-video:2.5.0] /Users/vickylawrenz/.gradle/caches/transforms-3/651ad93b4b8bdefb809f4933ce41512b/transformed/jetified-coil-video-2.5.0/AndroidManifest.xml:2:1-7:12
 MERGED from [androidx.media3:media3-ui:1.2.1] /Users/vickylawrenz/.gradle/caches/transforms-3/f9b1d11d77c894c58cfca424a4bc1b89/transformed/jetified-media3-ui-1.2.1/AndroidManifest.xml:17:1-22:12
 MERGED from [androidx.media3:media3-extractor:1.2.1] /Users/vickylawrenz/.gradle/caches/transforms-3/702cedc8821586878a1adc37cb232b0c/transformed/jetified-media3-extractor-1.2.1/AndroidManifest.xml:17:1-22:12
@@ -92,58 +92,64 @@ MERGED from [androidx.startup:startup-runtime:1.1.1] /Users/vickylawrenz/.gradle
 MERGED from [androidx.tracing:tracing:1.0.0] /Users/vickylawrenz/.gradle/caches/transforms-3/245e9b7db64f6c65ab8b669b519fa245/transformed/jetified-tracing-1.0.0/AndroidManifest.xml:17:1-24:12
 MERGED from [com.google.dagger:dagger-lint-aar:2.50] /Users/vickylawrenz/.gradle/caches/transforms-3/d0af86b7256730b98d2b732a0ceb3b6c/transformed/jetified-dagger-lint-aar-2.50/AndroidManifest.xml:16:1-19:12
 	package
-		INJECTED from /Users/vickylawrenz/jarvis-implementation/gamevault/app/src/main/AndroidManifest.xml
+		INJECTED from /Users/vickylawrenz/gamevault/app/src/main/AndroidManifest.xml
 	android:versionName
-		INJECTED from /Users/vickylawrenz/jarvis-implementation/gamevault/app/src/main/AndroidManifest.xml
+		INJECTED from /Users/vickylawrenz/gamevault/app/src/main/AndroidManifest.xml
 	xmlns:tools
-		ADDED from /Users/vickylawrenz/jarvis-implementation/gamevault/app/src/main/AndroidManifest.xml:3:5-51
+		ADDED from /Users/vickylawrenz/gamevault/app/src/main/AndroidManifest.xml:3:5-51
 	android:versionCode
-		INJECTED from /Users/vickylawrenz/jarvis-implementation/gamevault/app/src/main/AndroidManifest.xml
+		INJECTED from /Users/vickylawrenz/gamevault/app/src/main/AndroidManifest.xml
 	xmlns:android
-		ADDED from /Users/vickylawrenz/jarvis-implementation/gamevault/app/src/main/AndroidManifest.xml:2:11-69
+		ADDED from /Users/vickylawrenz/gamevault/app/src/main/AndroidManifest.xml:2:11-69
 uses-permission#android.permission.READ_EXTERNAL_STORAGE
-ADDED from /Users/vickylawrenz/jarvis-implementation/gamevault/app/src/main/AndroidManifest.xml:6:5-7:38
+ADDED from /Users/vickylawrenz/gamevault/app/src/main/AndroidManifest.xml:6:5-7:38
 	android:maxSdkVersion
-		ADDED from /Users/vickylawrenz/jarvis-implementation/gamevault/app/src/main/AndroidManifest.xml:7:9-35
+		ADDED from /Users/vickylawrenz/gamevault/app/src/main/AndroidManifest.xml:7:9-35
 	android:name
-		ADDED from /Users/vickylawrenz/jarvis-implementation/gamevault/app/src/main/AndroidManifest.xml:6:22-77
+		ADDED from /Users/vickylawrenz/gamevault/app/src/main/AndroidManifest.xml:6:22-77
 uses-permission#android.permission.WRITE_EXTERNAL_STORAGE
-ADDED from /Users/vickylawrenz/jarvis-implementation/gamevault/app/src/main/AndroidManifest.xml:8:5-10:40
+ADDED from /Users/vickylawrenz/gamevault/app/src/main/AndroidManifest.xml:8:5-10:40
 	android:maxSdkVersion
-		ADDED from /Users/vickylawrenz/jarvis-implementation/gamevault/app/src/main/AndroidManifest.xml:9:9-35
+		ADDED from /Users/vickylawrenz/gamevault/app/src/main/AndroidManifest.xml:9:9-35
 	tools:ignore
-		ADDED from /Users/vickylawrenz/jarvis-implementation/gamevault/app/src/main/AndroidManifest.xml:10:9-37
+		ADDED from /Users/vickylawrenz/gamevault/app/src/main/AndroidManifest.xml:10:9-37
 	android:name
-		ADDED from /Users/vickylawrenz/jarvis-implementation/gamevault/app/src/main/AndroidManifest.xml:8:22-78
+		ADDED from /Users/vickylawrenz/gamevault/app/src/main/AndroidManifest.xml:8:22-78
 uses-permission#android.permission.READ_MEDIA_IMAGES
-ADDED from /Users/vickylawrenz/jarvis-implementation/gamevault/app/src/main/AndroidManifest.xml:11:5-76
+ADDED from /Users/vickylawrenz/gamevault/app/src/main/AndroidManifest.xml:11:5-76
 	android:name
-		ADDED from /Users/vickylawrenz/jarvis-implementation/gamevault/app/src/main/AndroidManifest.xml:11:22-73
+		ADDED from /Users/vickylawrenz/gamevault/app/src/main/AndroidManifest.xml:11:22-73
 uses-permission#android.permission.READ_MEDIA_VIDEO
-ADDED from /Users/vickylawrenz/jarvis-implementation/gamevault/app/src/main/AndroidManifest.xml:12:5-75
+ADDED from /Users/vickylawrenz/gamevault/app/src/main/AndroidManifest.xml:12:5-75
 	android:name
-		ADDED from /Users/vickylawrenz/jarvis-implementation/gamevault/app/src/main/AndroidManifest.xml:12:22-72
+		ADDED from /Users/vickylawrenz/gamevault/app/src/main/AndroidManifest.xml:12:22-72
 uses-permission#android.permission.READ_MEDIA_AUDIO
-ADDED from /Users/vickylawrenz/jarvis-implementation/gamevault/app/src/main/AndroidManifest.xml:13:5-75
+ADDED from /Users/vickylawrenz/gamevault/app/src/main/AndroidManifest.xml:13:5-75
 	android:name
-		ADDED from /Users/vickylawrenz/jarvis-implementation/gamevault/app/src/main/AndroidManifest.xml:13:22-72
+		ADDED from /Users/vickylawrenz/gamevault/app/src/main/AndroidManifest.xml:13:22-72
 uses-permission#android.permission.MANAGE_EXTERNAL_STORAGE
-ADDED from /Users/vickylawrenz/jarvis-implementation/gamevault/app/src/main/AndroidManifest.xml:14:5-15:40
+ADDED from /Users/vickylawrenz/gamevault/app/src/main/AndroidManifest.xml:14:5-15:40
 	tools:ignore
-		ADDED from /Users/vickylawrenz/jarvis-implementation/gamevault/app/src/main/AndroidManifest.xml:15:9-37
+		ADDED from /Users/vickylawrenz/gamevault/app/src/main/AndroidManifest.xml:15:9-37
 	android:name
-		ADDED from /Users/vickylawrenz/jarvis-implementation/gamevault/app/src/main/AndroidManifest.xml:14:22-79
+		ADDED from /Users/vickylawrenz/gamevault/app/src/main/AndroidManifest.xml:14:22-79
 uses-permission#android.permission.USE_BIOMETRIC
-ADDED from /Users/vickylawrenz/jarvis-implementation/gamevault/app/src/main/AndroidManifest.xml:18:5-72
+ADDED from /Users/vickylawrenz/gamevault/app/src/main/AndroidManifest.xml:18:5-72
 	android:name
-		ADDED from /Users/vickylawrenz/jarvis-implementation/gamevault/app/src/main/AndroidManifest.xml:18:22-69
+		ADDED from /Users/vickylawrenz/gamevault/app/src/main/AndroidManifest.xml:18:22-69
+uses-permission#android.permission.QUERY_ALL_PACKAGES
+ADDED from /Users/vickylawrenz/gamevault/app/src/main/AndroidManifest.xml:21:5-22:53
+	tools:ignore
+		ADDED from /Users/vickylawrenz/gamevault/app/src/main/AndroidManifest.xml:22:9-50
+	android:name
+		ADDED from /Users/vickylawrenz/gamevault/app/src/main/AndroidManifest.xml:21:22-74
 uses-permission#android.permission.CAMERA
-ADDED from /Users/vickylawrenz/jarvis-implementation/gamevault/app/src/main/AndroidManifest.xml:21:5-65
+ADDED from /Users/vickylawrenz/gamevault/app/src/main/AndroidManifest.xml:25:5-65
 	android:name
-		ADDED from /Users/vickylawrenz/jarvis-implementation/gamevault/app/src/main/AndroidManifest.xml:21:22-62
+		ADDED from /Users/vickylawrenz/gamevault/app/src/main/AndroidManifest.xml:25:22-62
 application
-ADDED from /Users/vickylawrenz/jarvis-implementation/gamevault/app/src/main/AndroidManifest.xml:23:5-46:19
-INJECTED from /Users/vickylawrenz/jarvis-implementation/gamevault/app/src/main/AndroidManifest.xml:23:5-46:19
+ADDED from /Users/vickylawrenz/gamevault/app/src/main/AndroidManifest.xml:27:5-50:19
+INJECTED from /Users/vickylawrenz/gamevault/app/src/main/AndroidManifest.xml:27:5-50:19
 MERGED from [androidx.compose.ui:ui-tooling-android:1.6.0] /Users/vickylawrenz/.gradle/caches/transforms-3/2a6d3f77e85d323d5de6ade3b1d347aa/transformed/jetified-ui-tooling-release/AndroidManifest.xml:22:5-26:19
 MERGED from [androidx.compose.ui:ui-tooling-android:1.6.0] /Users/vickylawrenz/.gradle/caches/transforms-3/2a6d3f77e85d323d5de6ade3b1d347aa/transformed/jetified-ui-tooling-release/AndroidManifest.xml:22:5-26:19
 MERGED from [androidx.compose.ui:ui-test-manifest:1.6.0] /Users/vickylawrenz/.gradle/caches/transforms-3/74b6cf347adda15afc54f61334d02f23/transformed/jetified-ui-test-manifest-1.6.0/AndroidManifest.xml:22:5-26:19
@@ -163,53 +169,53 @@ MERGED from [androidx.profileinstaller:profileinstaller:1.3.1] /Users/vickylawre
 MERGED from [androidx.startup:startup-runtime:1.1.1] /Users/vickylawrenz/.gradle/caches/transforms-3/6de8fa69cb530a0f7e7fc070d42247db/transformed/jetified-startup-runtime-1.1.1/AndroidManifest.xml:25:5-31:19
 MERGED from [androidx.startup:startup-runtime:1.1.1] /Users/vickylawrenz/.gradle/caches/transforms-3/6de8fa69cb530a0f7e7fc070d42247db/transformed/jetified-startup-runtime-1.1.1/AndroidManifest.xml:25:5-31:19
 	android:extractNativeLibs
-		INJECTED from /Users/vickylawrenz/jarvis-implementation/gamevault/app/src/main/AndroidManifest.xml
+		INJECTED from /Users/vickylawrenz/gamevault/app/src/main/AndroidManifest.xml
 	android:requestLegacyExternalStorage
-		ADDED from /Users/vickylawrenz/jarvis-implementation/gamevault/app/src/main/AndroidManifest.xml:31:9-52
+		ADDED from /Users/vickylawrenz/gamevault/app/src/main/AndroidManifest.xml:35:9-52
 	android:appComponentFactory
 		ADDED from [androidx.core:core:1.12.0] /Users/vickylawrenz/.gradle/caches/transforms-3/e1b2ee99c9859ef10a1634cbf44c3814/transformed/core-1.12.0/AndroidManifest.xml:28:18-86
 	android:supportsRtl
-		ADDED from /Users/vickylawrenz/jarvis-implementation/gamevault/app/src/main/AndroidManifest.xml:29:9-35
+		ADDED from /Users/vickylawrenz/gamevault/app/src/main/AndroidManifest.xml:33:9-35
 	android:label
-		ADDED from /Users/vickylawrenz/jarvis-implementation/gamevault/app/src/main/AndroidManifest.xml:27:9-41
+		ADDED from /Users/vickylawrenz/gamevault/app/src/main/AndroidManifest.xml:31:9-41
 	android:roundIcon
-		ADDED from /Users/vickylawrenz/jarvis-implementation/gamevault/app/src/main/AndroidManifest.xml:28:9-54
+		ADDED from /Users/vickylawrenz/gamevault/app/src/main/AndroidManifest.xml:32:9-54
 	tools:targetApi
-		ADDED from /Users/vickylawrenz/jarvis-implementation/gamevault/app/src/main/AndroidManifest.xml:32:9-29
+		ADDED from /Users/vickylawrenz/gamevault/app/src/main/AndroidManifest.xml:36:9-29
 	android:icon
-		ADDED from /Users/vickylawrenz/jarvis-implementation/gamevault/app/src/main/AndroidManifest.xml:26:9-43
+		ADDED from /Users/vickylawrenz/gamevault/app/src/main/AndroidManifest.xml:30:9-43
 	android:allowBackup
-		ADDED from /Users/vickylawrenz/jarvis-implementation/gamevault/app/src/main/AndroidManifest.xml:25:9-36
+		ADDED from /Users/vickylawrenz/gamevault/app/src/main/AndroidManifest.xml:29:9-36
 	android:theme
-		ADDED from /Users/vickylawrenz/jarvis-implementation/gamevault/app/src/main/AndroidManifest.xml:30:9-47
+		ADDED from /Users/vickylawrenz/gamevault/app/src/main/AndroidManifest.xml:34:9-47
 	android:name
-		ADDED from /Users/vickylawrenz/jarvis-implementation/gamevault/app/src/main/AndroidManifest.xml:24:9-37
+		ADDED from /Users/vickylawrenz/gamevault/app/src/main/AndroidManifest.xml:28:9-37
 activity#com.gamevault.MainActivity
-ADDED from /Users/vickylawrenz/jarvis-implementation/gamevault/app/src/main/AndroidManifest.xml:34:9-44:20
+ADDED from /Users/vickylawrenz/gamevault/app/src/main/AndroidManifest.xml:38:9-48:20
 	android:launchMode
-		ADDED from /Users/vickylawrenz/jarvis-implementation/gamevault/app/src/main/AndroidManifest.xml:39:13-43
+		ADDED from /Users/vickylawrenz/gamevault/app/src/main/AndroidManifest.xml:43:13-43
 	android:exported
-		ADDED from /Users/vickylawrenz/jarvis-implementation/gamevault/app/src/main/AndroidManifest.xml:36:13-36
+		ADDED from /Users/vickylawrenz/gamevault/app/src/main/AndroidManifest.xml:40:13-36
 	android:configChanges
-		ADDED from /Users/vickylawrenz/jarvis-implementation/gamevault/app/src/main/AndroidManifest.xml:38:13-87
+		ADDED from /Users/vickylawrenz/gamevault/app/src/main/AndroidManifest.xml:42:13-87
 	android:theme
-		ADDED from /Users/vickylawrenz/jarvis-implementation/gamevault/app/src/main/AndroidManifest.xml:37:13-51
+		ADDED from /Users/vickylawrenz/gamevault/app/src/main/AndroidManifest.xml:41:13-51
 	android:name
-		ADDED from /Users/vickylawrenz/jarvis-implementation/gamevault/app/src/main/AndroidManifest.xml:35:13-41
+		ADDED from /Users/vickylawrenz/gamevault/app/src/main/AndroidManifest.xml:39:13-41
 intent-filter#action:name:android.intent.action.MAIN+category:name:android.intent.category.LAUNCHER
-ADDED from /Users/vickylawrenz/jarvis-implementation/gamevault/app/src/main/AndroidManifest.xml:40:13-43:29
+ADDED from /Users/vickylawrenz/gamevault/app/src/main/AndroidManifest.xml:44:13-47:29
 action#android.intent.action.MAIN
-ADDED from /Users/vickylawrenz/jarvis-implementation/gamevault/app/src/main/AndroidManifest.xml:41:17-69
+ADDED from /Users/vickylawrenz/gamevault/app/src/main/AndroidManifest.xml:45:17-69
 	android:name
-		ADDED from /Users/vickylawrenz/jarvis-implementation/gamevault/app/src/main/AndroidManifest.xml:41:25-66
+		ADDED from /Users/vickylawrenz/gamevault/app/src/main/AndroidManifest.xml:45:25-66
 category#android.intent.category.LAUNCHER
-ADDED from /Users/vickylawrenz/jarvis-implementation/gamevault/app/src/main/AndroidManifest.xml:42:17-77
+ADDED from /Users/vickylawrenz/gamevault/app/src/main/AndroidManifest.xml:46:17-77
 	android:name
-		ADDED from /Users/vickylawrenz/jarvis-implementation/gamevault/app/src/main/AndroidManifest.xml:42:27-74
+		ADDED from /Users/vickylawrenz/gamevault/app/src/main/AndroidManifest.xml:46:27-74
 uses-sdk
-INJECTED from /Users/vickylawrenz/jarvis-implementation/gamevault/app/src/main/AndroidManifest.xml reason: use-sdk injection requested
-INJECTED from /Users/vickylawrenz/jarvis-implementation/gamevault/app/src/main/AndroidManifest.xml
-INJECTED from /Users/vickylawrenz/jarvis-implementation/gamevault/app/src/main/AndroidManifest.xml
+INJECTED from /Users/vickylawrenz/gamevault/app/src/main/AndroidManifest.xml reason: use-sdk injection requested
+INJECTED from /Users/vickylawrenz/gamevault/app/src/main/AndroidManifest.xml
+INJECTED from /Users/vickylawrenz/gamevault/app/src/main/AndroidManifest.xml
 MERGED from [io.coil-kt:coil-video:2.5.0] /Users/vickylawrenz/.gradle/caches/transforms-3/651ad93b4b8bdefb809f4933ce41512b/transformed/jetified-coil-video-2.5.0/AndroidManifest.xml:5:5-44
 MERGED from [io.coil-kt:coil-video:2.5.0] /Users/vickylawrenz/.gradle/caches/transforms-3/651ad93b4b8bdefb809f4933ce41512b/transformed/jetified-coil-video-2.5.0/AndroidManifest.xml:5:5-44
 MERGED from [androidx.media3:media3-ui:1.2.1] /Users/vickylawrenz/.gradle/caches/transforms-3/f9b1d11d77c894c58cfca424a4bc1b89/transformed/jetified-media3-ui-1.2.1/AndroidManifest.xml:20:5-44
@@ -385,9 +391,9 @@ MERGED from [androidx.tracing:tracing:1.0.0] /Users/vickylawrenz/.gradle/caches/
 MERGED from [com.google.dagger:dagger-lint-aar:2.50] /Users/vickylawrenz/.gradle/caches/transforms-3/d0af86b7256730b98d2b732a0ceb3b6c/transformed/jetified-dagger-lint-aar-2.50/AndroidManifest.xml:18:3-42
 MERGED from [com.google.dagger:dagger-lint-aar:2.50] /Users/vickylawrenz/.gradle/caches/transforms-3/d0af86b7256730b98d2b732a0ceb3b6c/transformed/jetified-dagger-lint-aar-2.50/AndroidManifest.xml:18:3-42
 	android:targetSdkVersion
-		INJECTED from /Users/vickylawrenz/jarvis-implementation/gamevault/app/src/main/AndroidManifest.xml
+		INJECTED from /Users/vickylawrenz/gamevault/app/src/main/AndroidManifest.xml
 	android:minSdkVersion
-		INJECTED from /Users/vickylawrenz/jarvis-implementation/gamevault/app/src/main/AndroidManifest.xml
+		INJECTED from /Users/vickylawrenz/gamevault/app/src/main/AndroidManifest.xml
 uses-permission#android.permission.ACCESS_NETWORK_STATE
 ADDED from [androidx.media3:media3-common:1.2.1] /Users/vickylawrenz/.gradle/caches/transforms-3/b7e537e406c868fa2986d1f2c5255524/transformed/jetified-media3-common-1.2.1/AndroidManifest.xml:22:5-79
 MERGED from [androidx.media3:media3-exoplayer:1.2.1] /Users/vickylawrenz/.gradle/caches/transforms-3/f2932427b8127f5d00bef8cf847ca143/transformed/jetified-media3-exoplayer-1.2.1/AndroidManifest.xml:22:5-79

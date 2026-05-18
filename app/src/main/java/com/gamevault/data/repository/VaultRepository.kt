@@ -14,6 +14,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
@@ -57,11 +58,9 @@ class VaultRepository @Inject constructor(
 
     suspend fun deleteFolder(folderId: Long) {
         // Move all items in folder to root
-        val items = vaultItemDao.getItemsInFolder(folderId)
-        items.collect { itemList ->
-            itemList.forEach { item ->
-                vaultItemDao.updateItem(item.copy(folderId = null))
-            }
+        val items = vaultItemDao.getItemsInFolder(folderId).first()
+        for (item in items) {
+            vaultItemDao.updateItem(item.copy(folderId = null))
         }
         vaultFolderDao.deleteFolderById(folderId)
     }
