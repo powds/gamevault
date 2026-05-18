@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.GameVault" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:statusBarColor">#FAF8EF</item>
+        <item name="android:navigationBarColor">#FAF8EF</item>
+    </style>
+</resources>
