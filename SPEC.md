@@ -31,11 +31,7 @@
 - **Coroutines:** Kotlin Coroutines + Flow
 - **File Access:** Android SAF (Storage Access Framework) + MediaStore
 - **App Access:** PackageManager for hiding apps
-- **Encryption:** Android Keystore + AES-256 for file encryption
 - **Image Loading:** Coil (Compose)
-- **Video Player:** ExoPlayer / Media3
-- **Biometric:** AndroidX Biometric
-- **Camera:** CameraX (for intruder capture)
 
 ### State Management
 - ViewModel + StateFlow
@@ -51,7 +47,7 @@
 
 ## 3. Feature List
 
-### MVP Features (Phase 1) - COMPLETED
+### Phase 1 - COMPLETED
 1. **2048 Game Core** - DONE
    - Classic 2048 puzzle mechanics
    - Swipe gestures for tile movement
@@ -63,12 +59,13 @@
    - Fallback: numeric PIN
    - Pattern lock (3x3 grid draw)
    - Decoy PIN system
+   - Biometric unlock (UI ready)
 
 3. **File Hiding** - DONE
    - Hide photos (JPG, PNG, GIF, WEBP)
    - Hide videos (MP4, MKV, AVI, MOV, WEBM)
    - Hide documents (PDF, DOC, DOCX, XLS, XLSX, PPT, TXT)
-   - Basic file management
+   - Hide audio files
    - File picker integration
 
 4. **Built-in Viewers** - DONE
@@ -83,26 +80,37 @@
    - App list with search functionality
    - Lock/unlock individual apps
 
-6. **File Browser** - DONE
-   - Browse device storage
-   - Import files to vault
+### Phase 2 - COMPLETED
+6. **Folder Organization** - DONE
+   - Create folders
+   - Delete folders (items move to root)
+   - Rename folders
+   - Move items to folders
+   - Navigate into/out of folders
 
-### Phase 2 Features - IN PROGRESS
-7. **Categories/Folders** - IN PROGRESS
-   - Organize hidden content into folders
-   - Sort by date, type, size
-
-8. **Search** - IN PROGRESS
+7. **Search** - DONE
    - Search files by name
    - Search apps by name
+   - Flow-based reactive search
 
-9. **Thumbnails** - IN PROGRESS
+8. **Thumbnails** - DONE
    - Generate thumbnails for hidden photos/videos
+   - Cached thumbnail storage
+   - Bitmap loading utility
 
-### Phase 3 Features - PENDING
+9. **Sort & Filter** - DONE
+   - Sort by date, name, size, type
+   - Ascending/descending order
+
+### Phase 3 - PENDING
 10. **Cloud Backup** (Google Drive) - PENDING
-11. **App Lock** (lock individual apps with vault password) - PENDING
-12. **Encrypted file storage** - PENDING
+    - OAuth 2.0 integration
+    - Encrypted backup
+    - Restore functionality
+
+11. **Encrypted file storage** - PENDING
+    - AES-256 encryption
+    - Android Keystore integration
 
 ---
 
@@ -150,11 +158,6 @@
 - Shows fake content (e.g., a few innocent photos)
 - Real vault protected by real PIN
 
-### Encryption
-- AES-256-GCM for file encryption (planned)
-- Android Keystore for key management (planned)
-- Each vault item encrypted with unique key derived from master password (planned)
-
 ### Data Storage
 - Files stored in app-private directory
 - Metadata stored in Room database
@@ -169,7 +172,7 @@
 - [x] Corner tap vault unlock mechanism
 - [x] Pattern lock setup and verification
 - [x] PIN lock setup and verification
-- [x] Biometric unlock (AndroidX Biometric) - UI ready, needs hardware
+- [x] Biometric unlock (AndroidX Biometric) - UI ready
 - [x] App hider (hide apps from launcher)
 - [x] App launcher (launch hidden apps)
 - [x] File viewer (photos, videos, documents)
@@ -180,16 +183,17 @@
 - [x] App list with search functionality
 - [x] Vault storage info display
 - [x] Auto-lock functionality
+- [x] Folder organization (create/delete/rename)
+- [x] Sort by date/name/size/type
+- [x] Thumbnails generation for photos/videos
+- [x] Flow-based reactive search
 
 ### IN PROGRESS
-- [ ] Folder organization for files
-- [ ] Thumbnails display in file grid
-- [ ] Search functionality in vault files
+- None
 
 ### PENDING
 - [ ] Cloud backup to Google Drive
 - [ ] Encrypted file storage (AES-256)
-- [ ] App lock (lock individual apps with vault password)
 
 ---
 
@@ -199,6 +203,7 @@
 gamevault/
 ├── SPEC.md
 ├── README.md
+├── LICENSE
 ├── app/
 │   ├── build.gradle.kts
 │   └── src/main/
@@ -206,6 +211,7 @@ gamevault/
 │       │   ├── GameVaultApp.kt
 │       │   ├── MainActivity.kt
 │       │   ├── di/
+│       │   │   └── AppModule.kt
 │       │   ├── data/
 │       │   │   ├── local/
 │       │   │   │   └── Database.kt
@@ -252,9 +258,13 @@ gamevault/
 
 ---
 
-## 9. Current Build Info
+## 9. Build Info
 
 **Last Updated:** May 2026
-**GitHub:** https://github.com/powds/gamevault-vault
+**GitHub:** https://github.com/powds/gamevault
+**Author:** powds
 **Build Status:** BUILD SUCCESSFUL
 **APK Size:** ~20MB
+**Kotlin:** 1.9.22
+**Min SDK:** 26 (Android 8.0)
+**Target SDK:** 34 (Android 14)
