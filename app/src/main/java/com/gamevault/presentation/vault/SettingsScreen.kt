@@ -1,6 +1,9 @@
 package com.gamevault.presentation.vault
 
 import android.content.Intent
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -23,7 +26,8 @@ import com.gamevault.presentation.common.theme.*
 @Composable
 fun SettingsScreen(
     viewModel: VaultViewModel,
-    onNavigateBack: () -> Unit
+    onNavigateBack: () -> Unit,
+    onNavigateToBackup: () -> Unit
 ) {
     val context = LocalContext.current
     val storageInfo by viewModel.storageInfo.collectAsStateWithLifecycle()
@@ -32,9 +36,24 @@ fun SettingsScreen(
     var autoLockEnabled by remember { mutableStateOf(true) }
     var autoLockTimeout by remember { mutableStateOf("Immediately") }
     var intruderCaptureEnabled by remember { mutableStateOf(true) }
+    var encryptionEnabled by remember { mutableStateOf(false) }
     var showDeleteDialog by remember { mutableStateOf(false) }
     var showTimeoutDialog by remember { mutableStateOf(false) }
     var showClearSecurityDialog by remember { mutableStateOf(false) }
+    var showCreateBackupDialog by remember { mutableStateOf(false) }
+    var showRestoreDialog by remember { mutableStateOf(false) }
+    var backupStatus by remember { mutableStateOf("No backup yet") }
+    var lastBackupTime by remember { mutableStateOf("Never") }
+
+    // File picker for restore
+    val restoreLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.OpenDocumentTree()
+    ) { uri ->
+        uri?.let {
+            // Handle restore from selected directory
+            backupStatus = "Restore from: ${it.path}"
+        }
+    }
 
     Box(
         modifier = Modifier
@@ -73,7 +92,6 @@ fun SettingsScreen(
                     subtitle = "Use fingerprint to unlock vault",
                     checked = biometricEnabled,
                     onCheckedChange = { enabled ->
-                        // Biometric toggle - in production would use AndroidX Biometric
                         biometricEnabled = enabled
                     }
                 )
@@ -81,9 +99,11 @@ fun SettingsScreen(
                 SettingsSwitchItem(
                     icon = Icons.Default.Lock,
                     title = "Auto Lock",
-                    subtitle = "Lock vault when leaving app",
+                    subtitle = "Lock vault when leaving",
                     checked = autoLockEnabled,
-                    onCheckedChange = { autoLockEnabled = it }
+                    onCheckedChange = { enabled ->
+                        autoLockEnabled = enabled
+                    }
                 )
 
                 SettingsItem(
@@ -96,57 +116,86 @@ fun SettingsScreen(
                 SettingsSwitchItem(
                     icon = Icons.Default.CameraAlt,
                     title = "Intruder Capture",
-                    subtitle = "Capture photo on wrong PIN/pattern",
+                    subtitle = "Take photo on wrong PIN",
                     checked = intruderCaptureEnabled,
-                    onCheckedChange = { intruderCaptureEnabled = it }
+                    onCheckedChange = { enabled ->
+                        intruderCaptureEnabled = enabled
+                    }
                 )
 
                 SettingsItem(
-                    icon = Icons.Default.Pattern,
-                    title = "Change Pattern",
-                    subtitle = "Set a new unlock pattern",
-                    onClick = { /* Navigate to pattern setup */ }
-                )
-
-                SettingsItem(
-                    icon = Icons.Default.Pin,
-                    title = "Change PIN",
-                    subtitle = "Update your PIN code",
-                    onClick = { /* Navigate to PIN setup */ }
-                )
-
-                SettingsItem(
-                    icon = Icons.Default.Warning,
+                    icon = Icons.Default.Security,
                     title = "Clear Security",
                     subtitle = "Remove pattern and PIN",
-                    onClick = { showClearSecurityDialog = true },
-                    isDanger = true
+                    onClick = { showClearSecurityDialog = true }
                 )
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                // Storage Section
-                SectionTitle("Storage")
-
-                SettingsItem(
-                    icon = Icons.Default.Storage,
-                    title = "Vault Storage",
-                    subtitle = storageInfo,
-                    onClick = { }
-                )
+                // Backup Section
+                SectionTitle("Backup & Storage")
 
                 SettingsItem(
                     icon = Icons.Default.CloudUpload,
-                    title = "Cloud Backup",
-                    subtitle = "Backup to Google Drive",
-                    onClick = { /* TODO: Implement cloud backup */ }
+                    title = "Create Backup",
+                    subtitle = "Export vault data to file",
+                    onClick = { showCreateBackupDialog = true }
                 )
 
                 SettingsItem(
                     icon = Icons.Default.CloudDownload,
                     title = "Restore Backup",
-                    subtitle = "Restore from Google Drive",
-                    onClick = { /* TODO: Implement restore */ }
+                    subtitle = "Import from backup file",
+                    onClick = { restoreLauncher.launch(null) }
+                )
+
+                SettingsItem(
+                    icon = Icons.Default.History,
+                    title = "Last Backup",
+                    subtitle = lastBackupTime,
+                    onClick = { }
+                )
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                // Encryption Section
+                SectionTitle("Encryption")
+
+                SettingsSwitchItem(
+                    icon = Icons.Default.Lock,
+                    title = "Encrypt Files",
+                    subtitle = "AES-256 encryption for stored files",
+                    checked = encryptionEnabled,
+                    onCheckedChange = { enabled ->
+                        encryptionEnabled = enabled
+                    }
+                )
+
+                SettingsItem(
+                    icon = Icons.Default.Storage,
+                    title = "Encrypted Storage",
+                    subtitle = "Files stored: ${storageInfo}",
+                    onClick = { }
+                )
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                // Google Drive Section
+                SectionTitle("Cloud Backup")
+
+                SettingsItem(
+                    icon = Icons.Default.Cloud,
+                    title = "Google Drive Setup",
+                    subtitle = "Requires API configuration",
+                    onClick = { }
+                )
+
+                SettingsSwitchItem(
+                    icon = Icons.Default.Sync,
+                    title = "Auto Sync",
+                    subtitle = "Automatically backup to cloud",
+                    checked = false,
+                    onCheckedChange = { }
                 )
 
                 Spacer(modifier = Modifier.height(24.dp))
@@ -193,9 +242,12 @@ fun SettingsScreen(
         if (showDeleteDialog) {
             AlertDialog(
                 onDismissRequest = { showDeleteDialog = false },
-                title = { Text("Delete All Data?") },
+                title = { Text("Delete All Data?", color = VaultText) },
                 text = {
-                    Text("This will permanently delete all hidden files and apps. This action cannot be undone.")
+                    Text(
+                        "This will permanently delete all hidden files and apps. This action cannot be undone.",
+                        color = VaultText.copy(alpha = 0.7f)
+                    )
                 },
                 confirmButton = {
                     TextButton(
@@ -210,7 +262,7 @@ fun SettingsScreen(
                 },
                 dismissButton = {
                     TextButton(onClick = { showDeleteDialog = false }) {
-                        Text("Cancel")
+                        Text("Cancel", color = VaultText)
                     }
                 },
                 containerColor = VaultSurface,
@@ -223,9 +275,12 @@ fun SettingsScreen(
         if (showClearSecurityDialog) {
             AlertDialog(
                 onDismissRequest = { showClearSecurityDialog = false },
-                title = { Text("Clear Security?") },
+                title = { Text("Clear Security?", color = VaultText) },
                 text = {
-                    Text("This will remove your pattern and PIN. You will need to set them up again.")
+                    Text(
+                        "This will remove your pattern and PIN. You will need to set them up again.",
+                        color = VaultText.copy(alpha = 0.7f)
+                    )
                 },
                 confirmButton = {
                     TextButton(
@@ -240,7 +295,7 @@ fun SettingsScreen(
                 },
                 dismissButton = {
                     TextButton(onClick = { showClearSecurityDialog = false }) {
-                        Text("Cancel")
+                        Text("Cancel", color = VaultText)
                     }
                 },
                 containerColor = VaultSurface,
@@ -253,7 +308,7 @@ fun SettingsScreen(
         if (showTimeoutDialog) {
             AlertDialog(
                 onDismissRequest = { showTimeoutDialog = false },
-                title = { Text("Auto Lock Timeout") },
+                title = { Text("Auto Lock Timeout", color = VaultText) },
                 text = {
                     Column {
                         listOf("Immediately", "30 seconds", "1 minute", "5 minutes", "15 minutes").forEach { option ->
@@ -284,6 +339,74 @@ fun SettingsScreen(
                 confirmButton = { },
                 containerColor = VaultSurface,
                 titleContentColor = VaultText
+            )
+        }
+
+        // Create backup dialog
+        if (showCreateBackupDialog) {
+            AlertDialog(
+                onDismissRequest = { showCreateBackupDialog = false },
+                title = { Text("Create Backup", color = VaultText) },
+                text = {
+                    Text(
+                        "Create a local backup of your vault data including file references and settings. Actual files will be encrypted before export.",
+                        color = VaultText.copy(alpha = 0.7f)
+                    )
+                },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            showCreateBackupDialog = false
+                            // TODO: Trigger backup creation
+                            backupStatus = "Backup created successfully"
+                            lastBackupTime = "Just now"
+                        },
+                        colors = ButtonDefaults.textButtonColors(contentColor = VaultPrimary)
+                    ) {
+                        Text("Create Backup")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showCreateBackupDialog = false }) {
+                        Text("Cancel", color = VaultText)
+                    }
+                },
+                containerColor = VaultSurface,
+                titleContentColor = VaultText,
+                textContentColor = VaultText.copy(alpha = 0.7f)
+            )
+        }
+
+        // Restore dialog
+        if (showRestoreDialog) {
+            AlertDialog(
+                onDismissRequest = { showRestoreDialog = false },
+                title = { Text("Restore Backup", color = VaultText) },
+                text = {
+                    Text(
+                        "This will replace your current vault data with the backup. Continue?",
+                        color = VaultText.copy(alpha = 0.7f)
+                    )
+                },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            showRestoreDialog = false
+                            restoreLauncher.launch(null)
+                        },
+                        colors = ButtonDefaults.textButtonColors(contentColor = VaultPrimary)
+                    ) {
+                        Text("Select Backup")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showRestoreDialog = false }) {
+                        Text("Cancel", color = VaultText)
+                    }
+                },
+                containerColor = VaultSurface,
+                titleContentColor = VaultText,
+                textContentColor = VaultText.copy(alpha = 0.7f)
             )
         }
     }

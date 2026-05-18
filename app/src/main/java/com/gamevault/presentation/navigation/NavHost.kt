@@ -15,6 +15,7 @@ import com.gamevault.presentation.vault.PinSetupScreen
 import com.gamevault.presentation.vault.FileViewerScreen
 import com.gamevault.presentation.vault.AppListScreen
 import com.gamevault.presentation.vault.SettingsScreen
+import com.gamevault.presentation.vault.BackupScreen
 
 @Composable
 fun GameVaultNavHost() {
@@ -99,10 +100,34 @@ fun GameVaultNavHost() {
         }
 
         composable(Screen.Settings.route) {
+            val vaultViewModel: VaultViewModel = hiltViewModel()
             SettingsScreen(
-                viewModel = hiltViewModel(),
+                viewModel = vaultViewModel,
                 onNavigateBack = {
                     navController.popBackStack()
+                },
+                onNavigateToBackup = {
+                    navController.navigate(Screen.Backup.route)
+                }
+            )
+        }
+
+        composable(Screen.Backup.route) {
+            BackupScreen(
+                onNavigateBack = {
+                    navController.popBackStack()
+                },
+                onCreateBackup = {
+                    // TODO: Trigger backup creation
+                },
+                onRestoreBackup = { path ->
+                    // TODO: Restore from path
+                },
+                onDeleteBackup = { backupId ->
+                    // TODO: Delete backup
+                },
+                onExportBackup = { path ->
+                    // TODO: Export to path
                 }
             )
         }
