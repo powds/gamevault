@@ -62,6 +62,7 @@ class VaultViewModel @Inject constructor(
         loadFolders()
         loadFiles()
         loadHiddenApps()
+        loadApps()
         updateStorageInfo()
         loadLockedApps()
     }
